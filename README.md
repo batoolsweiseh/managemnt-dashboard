@@ -78,3 +78,5 @@ This project was developed in four main phases to ensure a secure, analytical, a
 4. **Credentials for Review**:
    - **Email**: `batool@gmail.com`
    - **Password**: `password123`
+
+AUTH_SECRET="f9e8a9f3b1b34c2c8f8d2273c5f4b4a6d1e37f6734c24df9872be9b3c4f7a2a1"
