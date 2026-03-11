@@ -36,9 +36,9 @@ async function DashboardContent() {
         <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mb-6 ring-1 ring-primary/20">
           <Plus className="h-10 w-10 text-primary animate-pulse-subtle" />
         </div>
-        <h2 className="text-2xl font-semibold mb-2 text-foreground">No tasks available</h2>
-        <p className="text-muted-foreground max-w-md mx-auto mb-8">
-          Get started with your productivity journey by creating your first task today.
+        <h2 className="text-2xl font-semibold mb-2 text-foreground text-center">No tasks available</h2>
+        <p className="text-muted-foreground max-w-md mx-auto mb-8 text-center">
+          No tasks available. Create your first task to get started.
         </p>
         <div className="flex justify-center">
           <CreateTaskButton />

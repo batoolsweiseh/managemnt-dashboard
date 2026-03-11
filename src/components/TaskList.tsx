@@ -2,7 +2,7 @@
 
 import { Task } from "@/lib/data";
 import { Calendar, User, AlignLeft, Trash2, Edit2, CheckCircle2, Clock, AlertCircle } from "lucide-react";
-import { deleteTask, updateTaskStatus } from "@/lib/actions";
+import { deleteTask } from "@/lib/actions";
 import { useState } from "react";
 import TaskFormDialog from "./TaskFormDialog";
 
@@ -15,13 +15,13 @@ export default function TaskList({ tasks }: TaskListProps) {
 
   if (tasks.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-24 px-4 text-center glass-morphism rounded-3xl border-2 border-dashed border-primary/20 bg-primary/5">
-        <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mb-6 ring-4 ring-primary/5">
-          <AlignLeft className="h-10 w-10 text-primary/60" />
+      <div className="flex flex-col items-center justify-center py-24 px-4 text-center rounded-[2.5rem] border border-zinc-200 bg-white shadow-sm">
+        <div className="w-20 h-20 bg-zinc-50 rounded-full flex items-center justify-center mb-6 border border-zinc-100">
+          <AlignLeft className="h-8 w-8 text-zinc-300" />
         </div>
-        <h2 className="text-3xl font-black mb-3 text-foreground tracking-tight">No Missions Found</h2>
-        <p className="text-muted-foreground max-w-md mx-auto mb-8 font-medium">
-          Try adjusting your search filters or create a new objective to get started.
+        <h2 className="text-2xl font-black mb-2 text-zinc-900 tracking-tight">System Clear</h2>
+        <p className="text-zinc-500 max-w-sm mx-auto mb-8 font-medium italic">
+          No active missions detected. Ready for new objective deployment.
         </p>
       </div>
     );
@@ -35,62 +35,59 @@ export default function TaskList({ tasks }: TaskListProps) {
     }
   };
 
-  const getPriorityColor = (priority: string) => {
+  const getPriorityStyle = (priority: string) => {
     switch (priority) {
-      case 'High': return 'bg-rose-500 shadow-rose-200';
-      case 'Medium': return 'bg-amber-500 shadow-amber-200';
-      default: return 'bg-blue-500 shadow-blue-200';
+      case 'High': return 'text-rose-600 bg-rose-50 border-rose-100';
+      case 'Medium': return 'text-amber-600 bg-amber-50 border-amber-100';
+      default: return 'text-blue-600 bg-blue-50 border-blue-100';
     }
   };
 
   const getStatusStyle = (status: string) => {
     switch (status) {
-      case 'Completed': return 'bg-green-50 text-green-700 border-green-200 ring-green-100';
-      case 'In Progress': return 'bg-blue-50 text-blue-700 border-blue-200 ring-blue-100';
-      default: return 'bg-amber-50 text-amber-700 border-amber-200 ring-amber-100';
+      case 'Completed': return 'bg-zinc-900 text-white border-zinc-900';
+      case 'In Progress': return 'bg-white text-zinc-900 border-zinc-200';
+      default: return 'bg-zinc-100 text-zinc-600 border-zinc-100';
     }
   };
 
   return (
-    <div className="grid gap-6">
+    <div className="grid gap-4">
       {tasks.map((task, i) => (
         <div
           key={task.id}
-          className="premium-card p-0 flex flex-col overflow-hidden group hover:shadow-[0_20px_50px_rgba(0,0,0,0.1)] transition-all duration-500 border-l-8 border-l-transparent hover:border-l-primary"
+          className="group relative bg-white rounded-3xl border border-zinc-100 p-6 sm:p-8 hover:border-primary/20 hover:shadow-[0_20px_40px_-20px_rgba(0,0,0,0.05)] transition-all duration-500"
           style={{ animationDelay: `${i * 100}ms` }}
         >
-          <div className="p-6 sm:p-8 flex flex-col sm:flex-row gap-6">
-            <div className="flex-1 flex flex-col gap-4">
-              <div className="flex items-start justify-between gap-4">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-3">
-                    <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest text-white shadow-sm ${getPriorityColor(task.priority)}`}>
-                      {task.priority} Priority
-                    </span>
-                    <h3 className="text-2xl font-black text-foreground group-hover:text-primary transition-colors tracking-tighter">
-                      {task.title}
-                    </h3>
-                  </div>
-                  <p className="text-muted-foreground font-medium line-clamp-2 max-w-2xl leading-relaxed">
-                    {task.description}
-                  </p>
-                </div>
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+            <div className="flex-1 space-y-4">
+              <div className="flex flex-wrap items-center gap-3">
+                <span className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider border ${getPriorityStyle(task.priority)}`}>
+                  {task.priority}
+                </span>
+                <h3 className="text-xl font-black text-zinc-900 group-hover:text-primary transition-colors tracking-tight">
+                  {task.title}
+                </h3>
               </div>
+              
+              <p className="text-zinc-500 font-medium line-clamp-2 max-w-3xl leading-relaxed text-sm">
+                {task.description}
+              </p>
 
-              <div className="flex flex-wrap items-center gap-6 mt-2">
-                <div className="flex items-center gap-2 text-sm font-bold text-muted-foreground">
-                  <Calendar className="w-4 h-4 text-primary" />
-                  <span className="bg-secondary/50 px-3 py-1 rounded-lg">Due {task.dueDate}</span>
+              <div className="flex flex-wrap items-center gap-5 pt-2">
+                <div className="flex items-center gap-2 text-xs font-bold text-zinc-400">
+                  <Calendar className="w-3.5 h-3.5" />
+                  <span>Due {task.dueDate}</span>
                 </div>
-                <div className="flex items-center gap-2 text-sm font-bold text-muted-foreground">
-                  <User className="w-4 h-4 text-primary" />
-                  <span className="bg-secondary/50 px-3 py-1 rounded-lg">{task.assignedUser}</span>
+                <div className="flex items-center gap-2 text-xs font-bold text-zinc-400">
+                  <User className="w-3.5 h-3.5" />
+                  <span>{task.assignedUser}</span>
                 </div>
               </div>
             </div>
 
-            <div className="flex flex-row sm:flex-col items-center justify-between sm:justify-center gap-4 sm:min-w-[180px] border-t sm:border-t-0 sm:border-l border-border/10 pt-4 sm:pt-0 sm:pl-6">
-              <div className={`flex items-center gap-2.5 px-5 py-2.5 rounded-2xl text-[12px] font-black uppercase tracking-widest border-2 ring-4 transition-all ${getStatusStyle(task.status)}`}>
+            <div className="flex items-center gap-4 lg:pl-8 lg:border-l lg:border-zinc-100">
+              <div className={`px-5 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-[0.15em] border transition-all flex items-center gap-2 shadow-sm ${getStatusStyle(task.status)}`}>
                 {getStatusIcon(task.status)}
                 {task.status}
               </div>
@@ -98,31 +95,22 @@ export default function TaskList({ tasks }: TaskListProps) {
               <div className="flex items-center gap-2">
                 <button 
                   onClick={() => setEditingTask(task)}
-                  className="p-3 rounded-2xl bg-secondary hover:bg-primary hover:text-white transition-all duration-300 group/btn shadow-sm"
-                  title="Edit Mission"
+                  className="p-3 rounded-xl bg-zinc-50 hover:bg-zinc-900 hover:text-white transition-all duration-300 group/btn border border-zinc-100 shadow-xs"
                 >
-                  <Edit2 className="w-5 h-5 transition-transform group-hover/btn:scale-110" />
+                  <Edit2 className="w-4 h-4" />
                 </button>
                 <button 
                   onClick={async () => {
-                    if (confirm('Are you sure you want to abort this mission?')) {
+                    if (confirm('Are you sure you want to delete this mission?')) {
                       await deleteTask(task.id);
                     }
                   }}
-                  className="p-3 rounded-2xl bg-secondary hover:bg-rose-600 hover:text-white transition-all duration-300 group/btn shadow-sm"
-                  title="Delete Mission"
+                  className="p-3 rounded-xl bg-zinc-50 hover:bg-rose-500 hover:text-white transition-all duration-300 group/btn border border-zinc-100 shadow-xs"
                 >
-                  <Trash2 className="w-5 h-5 transition-transform group-hover/btn:scale-110" />
+                  <Trash2 className="w-4 h-4" />
                 </button>
               </div>
             </div>
-          </div>
-
-          {/* Mini progress bar at bottom of card */}
-          <div className="h-1.5 w-full bg-secondary/30 relative">
-             <div 
-              className={`h-full transition-all duration-1000 ${task.status === 'Completed' ? 'w-full bg-green-500' : task.status === 'In Progress' ? 'w-1/2 bg-blue-500 animate-pulse' : 'w-1/4 bg-amber-500'}`}
-             />
           </div>
         </div>
       ))}

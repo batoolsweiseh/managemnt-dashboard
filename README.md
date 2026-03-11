@@ -1,32 +1,57 @@
 # TaskFlow Dashboard
 
-A modern, premium Task Management Dashboard built with Next.js App Router, Tailwind CSS, and NextAuth.js. This application allows users to manage their operational objectives with advanced CRUD capabilities, real-time analytics, and sophisticated filtering.
+A modern, premium Task Management Dashboard built with Next.js App Router, Tailwind CSS, and NextAuth.js.
 
-## 🚀 Features
+## 📋 Implementation Summary
 
-### Task 1: Authentication System
-- Secure login flow using `NextAuth.js` credentials provider.
-- Protected routes utilizing Next.js Server Components and Middleware.
-- Navigation bar displaying logged-in user information.
+This project was developed in four main phases to ensure a secure, analytical, and functional user experience.
 
-### Task 2: Dashboard Page
-- **Real-time Analytics**: Displays total, completed, pending, and overdue tasks.
-- **Premium UI**: Dark-themed, glassmorphism design with responsive cards and engaging micro-animations.
-- **Data Visualization**: Integrates `recharts` for dynamic pie and bar charts reflecting task status distribution.
-- **Recent Activity Feed**: Shows the latest task updates with dynamic status indicators.
+---
 
-### Task 3: Advanced Task CRUD
-- Extended task data model with Title, Description, Status, Priority, Due Date, and Assigned User.
-- Create, Update, and Delete task operations using Next.js Server Actions.
-- Form validation integrated within an animated modal dialog.
-- Status values: `Pending`, `In Progress`, `Completed`.
-- Priority values: `Low`, `Medium`, `High`.
+### Phase 1: Authentication System (Task 1)
+- **Objective**: Implement a secure authentication flow.
+- **Tech**: NextAuth.js (v5 Beta) with Credentials Provider.
+- **Features**:
+  - Secure `/login` page with custom UI.
+  - Session management using JWT.
+  - **Protected Routes**: Middleware (`src/middleware.ts`) ensures that only authenticated users can access `/` and `/tasks`.
+  - **Navigation**: Logged-in user information (Name/Email) is displayed in the responsive `Navbar`.
+  - Logout functionality integrated across the app.
 
-### Task 4: Search and Filtering
-- **Dynamic Search**: Instantly find tasks by their title or description.
-- **Multi-faceted Filtering**: Filter tasks by Status, Priority, and Due Date simultaneously.
-- **Real-time Updates**: Filters update the task list seamlessly without full page reloads using Next.js `useTransition` and the URL search parameters approach.
-- See implementation details in `src/components/TaskFilters.tsx` and `src/app/tasks/page.tsx`.
+### Phase 2: Dashboard Page (Task 2)
+- **Objective**: Provide a visual overview of task metrics and implementation progress.
+- **Metrics Displayed**:
+  - **Total Tasks**: Overall objective count.
+  - **Completed Tasks**: Missions achieved.
+  - **Pending Tasks**: Upcoming operational objectives.
+  - **Overdue Tasks**: Critical items that missed their target date.
+- **Visuals**:
+  - Premium **Statistic Cards** with dynamic trends.
+  - **Overall Progress Bar** calculating completion rate in real-time.
+  - **Interactive Charts**: Status distribution visualized using `recharts` (Pie/Bar).
+- **UX**:
+  - Dedicated **Empty State**: "No tasks available. Create your first task to get started."
+  - **Recent Activity Feed**: Quick glance at the latest mission updates.
+
+### Phase 3: Advanced Task CRUD (Task 3)
+- **Objective**: Build a robust management system for tasks with extended metadata.
+- **Data Model**:
+  - `Title`, `Description`, `Status` (Pending/In Progress/Completed), `Priority` (Low/Medium/High), `Due Date`, and `Assigned User`.
+- **Operations**:
+  - **Create**: Sophisticated, light-themed modal dialog with full form validation.
+  - **Edit**: Instant modification of mission parameters.
+  - **Delete**: Safe removal with confirmation protocols.
+  - **Quick Updates**: Ability to update status directly from the task list.
+
+### Phase 4: Search and Filtering (Task 4)
+- **Objective**: Implement high-efficiency data discovery.
+- **Features**:
+  - **Instant Search**: Debounced title/description search in the "Mission Control" page.
+  - **Advanced Filtering**: Filter by Status, Priority, and Due Date simultaneously.
+  - **URL-Synced State**: Filters are reflected in the URL for shareability and consistent navigation.
+  - **Dynamic UI**: Uses Next.js `useTransition` for smooth, non-blocking filtering updates.
+
+---
 
 ## 🛠 Tech Stack
 - **Framework**: [Next.js](https://nextjs.org/) (App Router, Server Actions)
@@ -37,38 +62,19 @@ A modern, premium Task Management Dashboard built with Next.js App Router, Tailw
 
 ## 🏃‍♂️ Getting Started
 
-1. **Clone the repository** (if applicable):
-   ```bash
-   git clone <repository-url>
-   cd batool.dashboard
-   ```
-
-2. **Install dependencies**:
+1. **Install dependencies**:
    ```bash
    npm install
    ```
 
-3. **Set up `.env.local`**:
-   Create a `.env.local` file in the root directory and add the `AUTH_SECRET`:
-   ```env
-   AUTH_SECRET=your_super_secret_string_here
-   ```
-   *(You can generate one using `openssl rand -base64 32`)*
+2. **Set up `.env.local`**:
+   Add `AUTH_SECRET=your_secret` to.env.local.
 
-4. **Run the development server**:
+3. **Run the development server**:
    ```bash
-   npm run dev
+   npm run dev -p 3001
    ```
 
-5. **Login**:
-   - Navigate to `http://localhost:3000`
-   - Use any email (e.g., `admin@example.com`) and any password longer than 6 characters to log in.
-
-## 🔎 Implementation Note: Search and Filtering
-The search and filtering mechanisms are built using Next.js 15+'s `useSearchParams`, `usePathname`, and `useRouter` hooks.
-- As the user interacts with inputs (e.g., typing in the search bar or changing a select dropdown), the URL parameters are updated instantly.
-- A slight debounce is used for the text input to prevent excessive renders.
-- `useTransition` enables smooth, non-blocking UI updates while the server re-fetches and filters the data.
-- The `getTasks` function in `src/lib/data.ts` acts as the mock backend endpoint, querying the data based on provided parameters.
- 
- AUTH_SECRET="f9e8a9f3b1b34c2c8f8d2273c5f4b4a6d1e37f6734c24df9872be9b3c4f7a2a1"
+4. **Credentials for Review**:
+   - **Email**: `batool@gmail.com`
+   - **Password**: `password123`
