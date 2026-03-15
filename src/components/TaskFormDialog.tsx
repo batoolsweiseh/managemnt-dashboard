@@ -2,8 +2,8 @@
 
 import { Task, TaskStatus, TaskPriority } from "@/lib/data";
 import { X, Calendar, User, Tag, AlignLeft, ShieldCheck, Sparkles } from "lucide-react";
-import { createTask, updateTask } from "@/lib/actions";
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 
 interface TaskFormDialogProps {
   task?: Task | null;
@@ -13,18 +13,35 @@ interface TaskFormDialogProps {
 export default function TaskFormDialog({ task, onClose }: TaskFormDialogProps) {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
-  async function handleSubmit(formData: FormData) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
     setError(null);
+    const formData = new FormData(e.currentTarget);
+    const data = Object.fromEntries(formData);
+    
     startTransition(async () => {
-      const result = task 
-        ? await updateTask(task.id, formData)
-        : await createTask(formData);
-      
-      if (result.error) {
-        setError(result.error);
-      } else {
-        onClose();
+      try {
+        const url = task ? `/api/tasks/${task.id}` : '/api/tasks';
+        const method = task ? 'PUT' : 'POST';
+        
+        const response = await fetch(url, {
+          method,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        });
+
+        if (!response.ok) {
+          const result = await response.json();
+          setError(result.error || 'Operation failed');
+        } else {
+          router.refresh();
+          onClose();
+        }
+      } catch (err) {
+        console.error('Form submission error:', err);
+        setError('Network mismatch or server down. Please try again.');
       }
     });
   }
@@ -54,7 +71,7 @@ export default function TaskFormDialog({ task, onClose }: TaskFormDialogProps) {
             </button>
           </div>
 
-          <form action={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-5">
               {/* Title Input */}
               <div className="space-y-1.5">

@@ -2,8 +2,8 @@
 
 import { Task } from "@/lib/data";
 import { Calendar, User, AlignLeft, Trash2, Edit2, CheckCircle2, Clock, AlertCircle } from "lucide-react";
-import { deleteTask } from "@/lib/actions";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import TaskFormDialog from "./TaskFormDialog";
 
 interface TaskListProps {
@@ -12,6 +12,7 @@ interface TaskListProps {
 
 export default function TaskList({ tasks }: TaskListProps) {
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const router = useRouter();
 
   if (tasks.length === 0) {
     return (
@@ -26,6 +27,36 @@ export default function TaskList({ tasks }: TaskListProps) {
       </div>
     );
   }
+
+  const handleDelete = async (id: string) => {
+    if (confirm('Are you sure you want to delete this mission?')) {
+      try {
+        const response = await fetch(`/api/tasks/${id}`, { method: 'DELETE' });
+        if (response.ok) {
+          router.refresh();
+        } else {
+          alert('Failed to delete mission');
+        }
+      } catch (err) {
+        console.error('Delete error:', err);
+      }
+    }
+  };
+
+  const handleStatusChange = async (id: string, newStatus: string) => {
+    try {
+      const response = await fetch(`/api/tasks/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      if (response.ok) {
+        router.refresh();
+      }
+    } catch (err) {
+      console.error('Status update error:', err);
+    }
+  };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -86,10 +117,20 @@ export default function TaskList({ tasks }: TaskListProps) {
               </div>
             </div>
 
-            <div className="flex items-center gap-4 lg:pl-8 lg:border-l lg:border-zinc-100">
-              <div className={`px-5 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-[0.15em] border transition-all flex items-center gap-2 shadow-sm ${getStatusStyle(task.status)}`}>
-                {getStatusIcon(task.status)}
-                {task.status}
+            <div className="flex flex-wrap items-center gap-4 lg:pl-8 lg:border-l lg:border-zinc-100">
+              <div className="relative group/status flex items-center">
+                <select
+                  value={task.status}
+                  onChange={(e) => handleStatusChange(task.id, e.target.value)}
+                  className={`pl-10 pr-4 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-[0.15em] border transition-all cursor-pointer appearance-none shadow-sm outline-none ${getStatusStyle(task.status)}`}
+                >
+                  <option value="Pending">Pending</option>
+                  <option value="In Progress">In Progress</option>
+                  <option value="Completed">Completed</option>
+                </select>
+                <div className="absolute left-4 pointer-events-none">
+                  {getStatusIcon(task.status)}
+                </div>
               </div>
 
               <div className="flex items-center gap-2">
@@ -100,11 +141,7 @@ export default function TaskList({ tasks }: TaskListProps) {
                   <Edit2 className="w-4 h-4" />
                 </button>
                 <button 
-                  onClick={async () => {
-                    if (confirm('Are you sure you want to delete this mission?')) {
-                      await deleteTask(task.id);
-                    }
-                  }}
+                  onClick={() => handleDelete(task.id)}
                   className="p-3 rounded-xl bg-zinc-50 hover:bg-rose-500 hover:text-white transition-all duration-300 group/btn border border-zinc-100 shadow-xs"
                 >
                   <Trash2 className="w-4 h-4" />
