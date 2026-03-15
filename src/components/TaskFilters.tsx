@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Search, Filter, X, Calendar, SlidersHorizontal, Sliders } from "lucide-react";
+import { Search, Filter, X, Calendar, SlidersHorizontal } from "lucide-react";
 import { useTransition, useEffect, useState } from "react";
 
 export default function TaskFilters() {
@@ -12,6 +12,7 @@ export default function TaskFilters() {
 
   const [query, setQuery] = useState(searchParams.get("query")?.toString() || "");
 
+  // Handle Search Input with Debounce
   useEffect(() => {
     const timeout = setTimeout(() => {
       handleFilterChange("query", query);
@@ -40,87 +41,85 @@ export default function TaskFilters() {
   };
 
   return (
-    <div className="flex flex-col gap-10 w-full animate-in fade-in slide-in-from-top-6 duration-1000">
-      <div className="flex flex-col lg:flex-row items-center gap-6">
-        {/* Search Bar - Futuristic Dark */}
+    <div className="flex flex-col gap-6 w-full animate-in fade-in slide-in-from-top-4 duration-700">
+      <div className="flex flex-col lg:flex-row items-center gap-4">
+        {/* Search Bar - Premium Design */}
         <div className="relative flex-1 w-full group">
-          <div className="absolute left-6 top-1/2 -translate-y-1/2 flex items-center gap-4">
-            <Search className="h-5 w-5 text-violet-500 group-focus-within:text-white transition-colors animate-pulse" />
-            <div className="w-[1px] h-5 bg-white/10" />
+          <div className="absolute left-5 top-1/2 -translate-y-1/2 flex items-center gap-3">
+            <Search className="h-5 w-5 text-zinc-400 group-focus-within:text-zinc-900 transition-colors" />
+            <div className="w-[1px] h-4 bg-zinc-200" />
           </div>
           <input
-            placeholder="Search operational data in neural registry..."
-            className="w-full pl-20 pr-14 h-16 bg-white/5 border border-white/10 focus:border-violet-500 focus:ring-8 focus:ring-violet-500/10 rounded-3xl outline-none transition-all font-black text-white placeholder:text-slate-600 shadow-2xl tracking-tight"
+            placeholder="Search missions by title, description or operative..."
+            className="w-full pl-16 pr-12 h-14 bg-white border border-zinc-200 focus:border-zinc-900 focus:ring-8 focus:ring-zinc-900/5 rounded-2xl outline-none transition-all font-semibold text-zinc-900 placeholder:text-zinc-400 shadow-sm"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
           {isPending && (
-            <div className="absolute right-6 top-1/2 -translate-y-1/2">
-              <div className="w-6 h-6 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" />
+            <div className="absolute right-5 top-1/2 -translate-y-1/2">
+              <div className="w-5 h-5 border-2 border-zinc-900 border-t-transparent rounded-full animate-spin" />
             </div>
           )}
         </div>
 
         {/* Action Buttons */}
-        <div className="flex items-center gap-4 w-full lg:w-auto">
+        <div className="flex items-center gap-3 w-full lg:w-auto">
           <button
             onClick={clearFilters}
-            className="flex items-center justify-center gap-3 h-16 px-10 bg-rose-500/10 hover:bg-rose-500 text-rose-500 hover:text-white border border-rose-500/20 rounded-3xl transition-all duration-500 font-black text-xs uppercase tracking-[0.2em] shadow-lg active:scale-95"
+            className="flex items-center justify-center gap-2 h-14 px-6 bg-white hover:bg-zinc-50 border border-zinc-200 rounded-2xl transition-all font-bold text-sm text-zinc-500 hover:text-zinc-900 shadow-sm active:scale-95"
           >
-            <X className="w-5 h-5" />
-            Reset
+            <X className="w-4 h-4" />
+            Reset Filters
           </button>
         </div>
       </div>
 
-      {/* Quick Filters - Neon Toggles */}
-      <div className="flex flex-wrap items-center gap-6 p-4 bg-white/5 rounded-[2.5rem] border border-white/5 shadow-inner">
-        <div className="flex items-center gap-3 px-4 text-slate-500">
-          <Sliders className="w-5 h-5" />
-          <span className="text-[10px] font-black uppercase tracking-[0.4em]">Heuristic Filters</span>
+      {/* Quick Filters Row */}
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="flex items-center gap-2 mr-2 text-zinc-400">
+          <SlidersHorizontal className="w-4 h-4" />
+          <span className="text-[10px] font-black uppercase tracking-widest">Filter By</span>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3 flex-1">
-          {/* Status Select */}
-          <div className="relative group">
-            <select
-              className="pl-6 pr-12 h-12 bg-slate-900 border border-white/10 rounded-2xl outline-none transition-all font-black text-[10px] uppercase tracking-widest appearance-none cursor-pointer hover:border-violet-500 text-white focus:ring-4 focus:ring-violet-500/10"
-              onChange={(e) => handleFilterChange("status", e.target.value)}
-              value={searchParams.get("status") || "all"}
-            >
-              <option value="all">PHASE: ALL</option>
-              <option value="Pending">PENDING</option>
-              <option value="In Progress">IN PROGRESS</option>
-              <option value="Completed">COMPLETED</option>
-            </select>
-            <Filter className={`absolute right-5 top-1/2 -translate-y-1/2 h-4 w-4 transition-colors ${searchParams.get("status") ? 'text-violet-500' : 'text-slate-600'}`} />
-          </div>
+        {/* Status Filter */}
+        <div className="relative flex-1 min-w-[140px] max-w-[200px]">
+          <select
+            className="w-full pl-4 pr-10 h-10 bg-white border border-zinc-200 rounded-xl outline-none transition-all font-bold text-xs appearance-none cursor-pointer hover:border-zinc-400 focus:ring-4 focus:ring-zinc-100"
+            onChange={(e) => handleFilterChange("status", e.target.value)}
+            value={searchParams.get("status") || "all"}
+          >
+            <option value="all">Status: All</option>
+            <option value="Pending">Pending</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Completed">Completed</option>
+          </select>
+          <Filter className="absolute right-4 top-1/2 -translate-y-1/2 h-3 w-3 text-zinc-400 pointer-events-none" />
+        </div>
 
-          {/* Priority Select */}
-          <div className="relative group">
-            <select
-              className="pl-6 pr-12 h-12 bg-slate-900 border border-white/10 rounded-2xl outline-none transition-all font-black text-[10px] uppercase tracking-widest appearance-none cursor-pointer hover:border-violet-500 text-white focus:ring-4 focus:ring-violet-500/10"
-              onChange={(e) => handleFilterChange("priority", e.target.value)}
-              value={searchParams.get("priority") || "all"}
-            >
-              <option value="all">PRIORITY: ALL</option>
-              <option value="High">HIGH</option>
-              <option value="Medium">MEDIUM</option>
-              <option value="Low">LOW</option>
-            </select>
-            <Filter className={`absolute right-5 top-1/2 -translate-y-1/2 h-4 w-4 transition-colors ${searchParams.get("priority") ? 'text-amber-500' : 'text-slate-600'}`} />
-          </div>
+        {/* Priority Filter */}
+        <div className="relative flex-1 min-w-[140px] max-w-[200px]">
+          <select
+            className="w-full pl-4 pr-10 h-10 bg-white border border-zinc-200 rounded-xl outline-none transition-all font-bold text-xs appearance-none cursor-pointer hover:border-zinc-400 focus:ring-4 focus:ring-zinc-100"
+            onChange={(e) => handleFilterChange("priority", e.target.value)}
+            value={searchParams.get("priority") || "all"}
+          >
+            <option value="all">Priority: All</option>
+            <option value="High">High</option>
+            <option value="Medium">Medium</option>
+            <option value="Low">Low</option>
+          </select>
+          <Filter className="absolute right-4 top-1/2 -translate-y-1/2 h-3 w-3 text-zinc-400 pointer-events-none" />
+        </div>
 
-          {/* Date Picker */}
-          <div className="relative group flex-1 max-w-[240px]">
-            <input
-              type="date"
-              className="w-full pl-6 pr-12 h-12 bg-slate-900 border border-white/10 rounded-2xl outline-none transition-all font-black text-[10px] uppercase tracking-widest cursor-pointer hover:border-violet-500 text-white focus:ring-4 focus:ring-violet-500/10"
-              onChange={(e) => handleFilterChange("dueDate", e.target.value)}
-              value={searchParams.get("dueDate") || ""}
-            />
-            <Calendar className="absolute right-5 top-1/2 -translate-y-1/2 h-4 w-4 text-emerald-500 pointer-events-none" />
-          </div>
+        {/* Date Filter */}
+        <div className="relative flex-1 min-w-[160px] max-w-[200px] group">
+          <input
+            type="date"
+            className="w-full pl-4 pr-10 h-10 bg-white border border-zinc-200 rounded-xl outline-none transition-all font-bold text-xs appearance-none cursor-pointer hover:border-zinc-400 focus:ring-4 focus:ring-zinc-100 text-zinc-900"
+            onChange={(e) => handleFilterChange("dueDate", e.target.value)}
+            value={searchParams.get("dueDate") || ""}
+          />
+          <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 h-3 w-3 text-zinc-400 pointer-events-none" />
         </div>
       </div>
     </div>

@@ -145,7 +145,22 @@ export async function getDashboardStats() {
   
   const completionRate = total > 0 ? Math.round((completed / total) * 100) : 0;
 
-  return { total, completed, inProgress, pending, overdue, completionRate };
+  // Calculate priority distribution
+  const priorityDistribution = [
+    { name: 'High', value: tasks.filter(t => t.priority === 'High').length },
+    { name: 'Medium', value: tasks.filter(t => t.priority === 'Medium').length },
+    { name: 'Low', value: tasks.filter(t => t.priority === 'Low').length },
+  ];
+
+  return { 
+    total, 
+    completed, 
+    inProgress, 
+    pending, 
+    overdue, 
+    completionRate,
+    priorityDistribution
+  };
 }
 
 export async function getRecentTasks() {

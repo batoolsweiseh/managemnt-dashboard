@@ -3,7 +3,7 @@ import { getDashboardStats, getRecentTasks } from "@/lib/data";
 import DashboardStats from "@/components/DashboardStats";
 import DashboardCharts from "@/components/DashboardCharts";
 import TaskList from "@/components/TaskList";
-import { Sparkles, Command, ShieldCheck, Zap, ArrowRight, History, Activity } from "lucide-react";
+import { Sparkles, Command, ShieldCheck, Zap, ArrowRight, History } from "lucide-react";
 import Link from "next/link";
 import CreateTaskButton from "@/components/CreateTaskButton";
 
@@ -18,99 +18,86 @@ export default async function DashboardPage() {
       { name: 'Pending', value: stats.pending },
       { name: 'Overdue', value: stats.overdue },
     ],
-    priorityData: [
-      { name: 'High', value: 4 }, // Mocked for visual impact
-      { name: 'Medium', value: 6 },
-      { name: 'Low', value: 2 },
-    ]
+    priorityData: stats.priorityDistribution
   };
 
   return (
-    <div className="min-h-screen relative pb-32 overflow-hidden">
-      {/* Dynamic Vibrant Background */}
-      <div className="bg-vibrant-mesh" />
+    <div className="min-h-screen relative pb-20">
+      {/* Background Element */}
+      <div className="bg-mesh-gradient" />
       
-      {/* Floating Decorative Elements */}
-      <div className="absolute top-1/4 -right-20 w-96 h-96 bg-violet-600/10 rounded-full blur-[150px] animate-pulse"></div>
-      <div className="absolute bottom-1/4 -left-20 w-96 h-96 bg-emerald-600/10 rounded-full blur-[150px] animate-pulse-slow"></div>
-
-      <div className="max-w-7xl mx-auto pt-20 px-6 sm:px-12 lg:px-16 space-y-20 relative z-10">
+      <div className="max-w-7xl mx-auto pt-12 px-4 sm:px-6 lg:px-8 space-y-12">
         
-        {/* Futuristic Header */}
-        <header className="flex flex-col lg:flex-row lg:items-end justify-between gap-12 animate-in fade-in slide-in-from-top-12 duration-1200">
-          <div className="space-y-6">
-            <div className="inline-flex items-center gap-4 px-5 py-2.5 bg-white/5 backdrop-blur-3xl rounded-2xl border border-white/10 shadow-2xl">
-              <div className="relative flex h-3 w-3">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-violet-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-violet-500 shadow-[0_0_10px_rgba(139,92,246,0.8)]"></span>
+        {/* Header Section */}
+        <header className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 animate-in fade-in slide-in-from-left duration-1000">
+          <div className="space-y-4">
+            <div className="inline-flex items-center gap-2.5 px-4 py-2 bg-white rounded-2xl border border-zinc-100 shadow-sm">
+              <div className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
               </div>
-              <span className="text-[11px] font-black uppercase tracking-[0.4em] text-slate-300">Neural Link: Online</span>
-              <div className="w-px h-4 bg-white/10" />
-              <Activity className="w-4 h-4 text-emerald-400 animate-pulse" />
-              <span className="text-[11px] font-black uppercase tracking-[0.4em] text-emerald-400">Stable</span>
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">System Link Active</span>
+              <div className="w-px h-3 bg-zinc-200" />
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">Node 01-A</span>
             </div>
             
-            <div className="space-y-3">
-              <h1 className="text-6xl sm:text-8xl font-black tracking-tighter text-white leading-[0.85] drop-shadow-2xl">
-                CORTEX <br /> <span className="gradient-text italic">DASHBOARD</span>
+            <div className="space-y-1">
+              <h1 className="text-5xl sm:text-6xl font-black tracking-tighter text-zinc-900 leading-none">
+                Executive <span className="text-primary italic">Overview</span>
               </h1>
-              <p className="text-2xl font-bold text-slate-400 tracking-tight max-w-2xl">
-                Synchronizing high-priority objective logic and real-time operational heuristics.
+              <p className="text-xl font-medium text-zinc-500">
+                Synchronizing mission logic and operational parameters.
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-4">
             <div className="hidden sm:flex flex-col items-end -space-y-1">
-              <span className="text-[10px] font-black uppercase tracking-[0.5em] text-slate-500 mb-2">Protocol</span>
-              <div className="px-5 py-2.5 bg-white/5 border border-white/10 rounded-2xl flex items-center gap-4 shadow-xl">
-                 <span className="text-sm font-black text-white">LEVEL 5 ACCESS</span>
-                 <ShieldCheck className="w-5 h-5 text-emerald-500" />
-              </div>
+              <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Security</span>
+              <span className="text-sm font-bold text-zinc-900 flex items-center gap-2">
+                Encrypted Session
+                <ShieldCheck className="w-4 h-4 text-emerald-500" />
+              </span>
             </div>
-            <div className="scale-125 origin-right">
-               <CreateTaskButton />
-            </div>
+            <CreateTaskButton />
           </div>
         </header>
 
-        <main className="space-y-24">
-          {/* Key Metrics */}
-          <Suspense fallback={<div className="h-80 bg-white/5 rounded-[3rem] animate-pulse" />}>
+        <main className="space-y-12">
+          {/* Key Performance Indicators */}
+          <Suspense fallback={<div className="h-64 bg-zinc-50 rounded-3xl animate-pulse" />}>
             <DashboardStats stats={stats} />
           </Suspense>
 
-          {/* Visual Data Spectrum */}
-          <section className="space-y-10">
-             <div className="flex items-center gap-4 px-2">
-                <Command className="w-6 h-6 text-violet-500" />
-                <h2 className="text-sm font-black uppercase tracking-[0.5em] text-slate-500">Neural Analytics Spectrum</h2>
+          {/* Analytics Grid */}
+          <section className="space-y-6">
+             <div className="flex items-center gap-3 px-1">
+                <Command className="w-5 h-5 text-zinc-400" />
+                <h2 className="text-sm font-black uppercase tracking-[0.3em] text-zinc-500">Advanced Analytics</h2>
              </div>
-             <Suspense fallback={<div className="h-[500px] bg-white/5 rounded-[3rem] animate-pulse" />}>
+             <Suspense fallback={<div className="h-96 bg-zinc-50 rounded-3xl animate-pulse" />}>
                 <DashboardCharts data={chartData} />
              </Suspense>
           </section>
 
-          {/* Activity Log */}
-          <section className="space-y-10">
-            <div className="flex items-center justify-between px-2">
-              <div className="flex items-center gap-4">
-                <History className="w-6 h-6 text-emerald-500" />
-                <h2 className="text-sm font-black uppercase tracking-[0.5em] text-slate-500">Live Mission Feed</h2>
+          {/* Recent Operations */}
+          <section className="space-y-6">
+            <div className="flex items-center justify-between px-1">
+              <div className="flex items-center gap-3">
+                <History className="w-5 h-5 text-zinc-400" />
+                <h2 className="text-sm font-black uppercase tracking-[0.3em] text-zinc-500">Recent Operations</h2>
               </div>
               <Link 
                 href="/tasks" 
-                className="group flex items-center gap-3 text-sm font-black text-violet-400 hover:text-white transition-all"
+                className="group flex items-center gap-2 text-sm font-black text-primary hover:text-indigo-700 transition-colors"
               >
-                ACCESS FULL ARCHIVE
-                <ArrowRight className="w-5 h-5 group-hover:translate-x-2 transition-transform" />
+                Full Registry
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Link>
             </div>
             
-            <Suspense fallback={<div className="space-y-6"><div className="h-32 bg-white/5 rounded-3xl animate-pulse" /></div>}>
-              <div className="p-1 rounded-[2.5rem] bg-linear-to-b from-white/10 to-transparent">
-                 <TaskList tasks={recentTasks} />
-              </div>
+            <Suspense fallback={<div className="space-y-4"><div className="h-24 bg-zinc-50 rounded-2xl animate-pulse" /></div>}>
+              <TaskList tasks={recentTasks} />
             </Suspense>
           </section>
         </main>
