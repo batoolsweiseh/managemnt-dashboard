@@ -1,8 +1,20 @@
 "use client";
 
 import { Task } from "@/lib/data";
-import { Calendar, User, AlignLeft, Trash2, Edit2, CheckCircle2, Clock, AlertCircle } from "lucide-react";
-import { deleteTask } from "@/lib/actions";
+import { 
+  Calendar, 
+  User, 
+  MoreVertical, 
+  Edit3, 
+  Trash2, 
+  Flag,
+  Circle,
+  CheckCircle2,
+  Clock,
+  ExternalLink,
+  ChevronRight
+} from "lucide-react";
+import { deleteTask, updateTaskStatus } from "@/lib/actions";
 import { useState } from "react";
 import TaskFormDialog from "./TaskFormDialog";
 
@@ -13,107 +25,122 @@ interface TaskListProps {
 export default function TaskList({ tasks }: TaskListProps) {
   const [editingTask, setEditingTask] = useState<Task | null>(null);
 
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'High': return 'text-rose-600 bg-rose-50 border-rose-100';
+      case 'Medium': return 'text-amber-600 bg-amber-50 border-amber-100';
+      case 'Low': return 'text-emerald-600 bg-emerald-50 border-emerald-100';
+      default: return 'text-zinc-600 bg-zinc-50 border-zinc-100';
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'Completed': return <CheckCircle2 className="w-4 h-4 text-emerald-500" />;
+      case 'In Progress': return <Clock className="w-4 h-4 text-amber-500 animate-pulse" />;
+      default: return <Circle className="w-4 h-4 text-zinc-300" />;
+    }
+  };
+
   if (tasks.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-24 px-4 text-center rounded-[2.5rem] border border-zinc-200 bg-white shadow-sm">
-        <div className="w-20 h-20 bg-zinc-50 rounded-full flex items-center justify-center mb-6 border border-zinc-100">
-          <AlignLeft className="h-8 w-8 text-zinc-300" />
+      <div className="premium-card p-20 flex flex-col items-center justify-center text-center space-y-6">
+        <div className="w-24 h-24 bg-zinc-50 rounded-[2.5rem] flex items-center justify-center border-2 border-dashed border-zinc-200">
+          <Flag className="w-10 h-10 text-zinc-300" />
         </div>
-        <h2 className="text-2xl font-black mb-2 text-zinc-900 tracking-tight">System Clear</h2>
-        <p className="text-zinc-500 max-w-sm mx-auto mb-8 font-medium italic">
-          No active missions detected. Ready for new objective deployment.
-        </p>
+        <div className="space-y-2">
+          <h3 className="text-2xl font-black tracking-tight text-zinc-900">No Objectives Locked</h3>
+          <p className="text-zinc-500 font-medium max-w-sm">The registry is currently clear. Initiate a new mission deployment to begin tracking.</p>
+        </div>
       </div>
     );
   }
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'Completed': return <CheckCircle2 className="w-4 h-4" />;
-      case 'In Progress': return <Clock className="w-4 h-4" />;
-      default: return <AlertCircle className="w-4 h-4" />;
-    }
-  };
-
-  const getPriorityStyle = (priority: string) => {
-    switch (priority) {
-      case 'High': return 'text-rose-600 bg-rose-50 border-rose-100';
-      case 'Medium': return 'text-amber-600 bg-amber-50 border-amber-100';
-      default: return 'text-blue-600 bg-blue-50 border-blue-100';
-    }
-  };
-
-  const getStatusStyle = (status: string) => {
-    switch (status) {
-      case 'Completed': return 'bg-zinc-900 text-white border-zinc-900';
-      case 'In Progress': return 'bg-white text-zinc-900 border-zinc-200';
-      default: return 'bg-zinc-100 text-zinc-600 border-zinc-100';
-    }
-  };
-
   return (
-    <div className="grid gap-4">
-      {tasks.map((task, i) => (
-        <div
-          key={task.id}
-          className="group relative bg-white rounded-3xl border border-zinc-100 p-6 sm:p-8 hover:border-primary/20 hover:shadow-[0_20px_40px_-20px_rgba(0,0,0,0.05)] transition-all duration-500"
-          style={{ animationDelay: `${i * 100}ms` }}
-        >
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-            <div className="flex-1 space-y-4">
-              <div className="flex flex-wrap items-center gap-3">
-                <span className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider border ${getPriorityStyle(task.priority)}`}>
-                  {task.priority}
-                </span>
-                <h3 className="text-xl font-black text-zinc-900 group-hover:text-primary transition-colors tracking-tight">
-                  {task.title}
-                </h3>
-              </div>
-              
-              <p className="text-zinc-500 font-medium line-clamp-2 max-w-3xl leading-relaxed text-sm">
-                {task.description}
-              </p>
-
-              <div className="flex flex-wrap items-center gap-5 pt-2">
-                <div className="flex items-center gap-2 text-xs font-bold text-zinc-400">
-                  <Calendar className="w-3.5 h-3.5" />
-                  <span>Due {task.dueDate}</span>
+    <>
+      <div className="space-y-4">
+        {tasks.map((task) => (
+          <div 
+            key={task.id} 
+            className="premium-card group hover:ring-2 hover:ring-primary/10"
+          >
+            <div className="p-6 sm:p-8 flex flex-col lg:flex-row lg:items-center gap-8">
+              {/* Status Indicator */}
+              <div className="flex items-start lg:items-center gap-6 lg:border-r border-zinc-100 lg:pr-8">
+                <div className="relative">
+                  <select 
+                    value={task.status}
+                    onChange={(e) => updateTaskStatus(task.id, e.target.value as any)}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                  >
+                    <option value="Pending">Pending</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Completed">Completed</option>
+                  </select>
+                  <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300 ${
+                    task.status === 'Completed' ? 'bg-emerald-50 shadow-emerald-100' : 'bg-zinc-50 shadow-zinc-100'
+                  } shadow-lg border border-white`}>
+                    {getStatusIcon(task.status)}
+                  </div>
                 </div>
-                <div className="flex items-center gap-2 text-xs font-bold text-zinc-400">
-                  <User className="w-3.5 h-3.5" />
-                  <span>{task.assignedUser}</span>
+                
+                <div className="space-y-1 min-w-[140px]">
+                  <span className={`text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full border ${getPriorityColor(task.priority)}`}>
+                    {task.priority} Priority
+                  </span>
+                  <div className="flex flex-col">
+                    <span className="text-xs font-bold text-zinc-400 uppercase tracking-tighter">Mission Phase</span>
+                    <span className="text-sm font-black text-zinc-900">{task.status}</span>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div className="flex items-center gap-4 lg:pl-8 lg:border-l lg:border-zinc-100">
-              <div className={`px-5 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-[0.15em] border transition-all flex items-center gap-2 shadow-sm ${getStatusStyle(task.status)}`}>
-                {getStatusIcon(task.status)}
-                {task.status}
+              {/* Main Content */}
+              <div className="flex-1 space-y-2">
+                <div className="flex items-center gap-3">
+                  <h3 className="text-xl font-black tracking-tight text-zinc-900 group-hover:text-primary transition-colors cursor-pointer flex items-center gap-2">
+                    {task.title}
+                    <ExternalLink className="w-3.5 h-3.5 opacity-0 group-hover:opacity-40 transition-opacity" />
+                  </h3>
+                </div>
+                <p className="text-zinc-500 font-medium leading-relaxed max-w-3xl text-sm line-clamp-2">
+                  {task.description}
+                </p>
+                
+                <div className="flex flex-wrap items-center gap-6 pt-2">
+                  <div className="flex items-center gap-2 text-zinc-500 bg-zinc-50 px-3 py-1.5 rounded-xl border border-zinc-100">
+                    <Calendar className="w-3.5 h-3.5 text-primary" />
+                    <span className="text-[11px] font-bold">Deadline: {task.dueDate}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-zinc-500 bg-zinc-50 px-3 py-1.5 rounded-xl border border-zinc-100">
+                    <User className="w-3.5 h-3.5 text-primary" />
+                    <span className="text-[11px] font-bold">Operative: {task.assignedUser}</span>
+                  </div>
+                </div>
               </div>
 
-              <div className="flex items-center gap-2">
+              {/* Actions */}
+              <div className="flex items-center justify-end gap-3 lg:border-l border-zinc-100 lg:pl-8">
                 <button 
                   onClick={() => setEditingTask(task)}
-                  className="p-3 rounded-xl bg-zinc-50 hover:bg-zinc-900 hover:text-white transition-all duration-300 group/btn border border-zinc-100 shadow-xs"
+                  className="w-10 h-10 rounded-xl bg-zinc-50 text-zinc-400 hover:bg-zinc-900 hover:text-white transition-all duration-300 flex items-center justify-center group/btn shadow-sm"
                 >
-                  <Edit2 className="w-4 h-4" />
+                  <Edit3 className="w-4 h-4 group-hover/btn:rotate-12 transition-transform" />
                 </button>
                 <button 
-                  onClick={async () => {
-                    if (confirm('Are you sure you want to delete this mission?')) {
-                      await deleteTask(task.id);
-                    }
-                  }}
-                  className="p-3 rounded-xl bg-zinc-50 hover:bg-rose-500 hover:text-white transition-all duration-300 group/btn border border-zinc-100 shadow-xs"
+                  onClick={() => deleteTask(task.id)}
+                  className="w-10 h-10 rounded-xl bg-rose-50 text-rose-400 hover:bg-rose-600 hover:text-white transition-all duration-300 flex items-center justify-center group/btn shadow-sm"
                 >
-                  <Trash2 className="w-4 h-4" />
+                  <Trash2 className="w-4 h-4 group-hover/btn:scale-110 transition-transform" />
                 </button>
+                <div className="hidden lg:flex w-10 h-10 rounded-xl items-center justify-center text-zinc-300 group-hover:text-zinc-600 transition-colors">
+                   <ChevronRight className="w-5 h-5" />
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
 
       {editingTask && (
         <TaskFormDialog 
@@ -121,6 +148,6 @@ export default function TaskList({ tasks }: TaskListProps) {
           onClose={() => setEditingTask(null)} 
         />
       )}
-    </div>
+    </>
   );
 }

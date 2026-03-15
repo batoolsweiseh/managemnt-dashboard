@@ -1,9 +1,12 @@
-import { CheckCircle2, Clock, AlertCircle, ListTodo } from "lucide-react";
+"use client";
+
+import { CheckCircle2, CircleDashed, Clock, Target, TrendingUp, Zap } from "lucide-react";
 
 interface StatsProps {
   stats: {
     total: number;
     completed: number;
+    inProgress: number;
     pending: number;
     overdue: number;
     completionRate: number;
@@ -11,101 +14,135 @@ interface StatsProps {
 }
 
 export default function DashboardStats({ stats }: StatsProps) {
-  const cards = [
+  const statItems = [
     {
-      title: "Total Tasks",
+      label: "Total Missions",
       value: stats.total,
-      icon: ListTodo,
-      color: "text-primary",
-      bgClass: "from-primary/10 via-primary/5 to-transparent",
+      icon: Target,
+      color: "bg-indigo-50 text-indigo-600",
       trend: "+12% vs last month",
-      trendUp: true
+      description: "Active registry operational capacity"
     },
     {
-      title: "Completed",
+      label: "Completed",
       value: stats.completed,
       icon: CheckCircle2,
-      color: "text-green-600",
-      bgClass: "from-green-600/10 via-green-600/5 to-transparent",
-      trend: "+5.4% week increase",
-      trendUp: true
+      color: "bg-emerald-50 text-emerald-600",
+      trend: "85% yield rate",
+      description: "Successful mission closures"
     },
     {
-      title: "Pending",
-      value: stats.pending,
-      icon: Clock,
-      color: "text-amber-600",
-      bgClass: "from-amber-600/10 via-amber-600/5 to-transparent",
-      trend: "-2.1% decrease",
-      trendUp: false
+      label: "In Progress",
+      value: stats.inProgress,
+      icon: Zap,
+      color: "bg-amber-50 text-amber-600",
+      trend: "Peak workflow",
+      description: "Currently executing operations"
     },
     {
-      title: "Overdue",
+      label: "Overdue",
       value: stats.overdue,
-      icon: AlertCircle,
-      color: "text-rose-600",
-      bgClass: "from-rose-600/10 via-rose-600/5 to-transparent",
-      trend: "+1 since yesterday",
-      trendUp: true
-    },
+      icon: Clock,
+      color: "bg-rose-50 text-rose-600",
+      trend: "Requires attention",
+      description: "Exceeded operational deadline"
+    }
   ];
 
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-6 duration-1000">
+    <div className="space-y-10 animate-in fade-in slide-in-from-top-6 duration-1000">
+      {/* Primary Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {cards.map((card, index) => {
-          const Icon = card.icon;
-          return (
-            <div 
-              key={index} 
-              className={`premium-card p-6 stat-card-gradient transition-all hover:-translate-y-2 hover:shadow-2xl group before:bg-linear-to-br ${card.bgClass} flex flex-col justify-between`}
-            >
-              <div>
-                <div className="flex items-center justify-between mb-4 relative z-10">
-                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider group-hover:text-foreground transition-colors">
-                    {card.title}
-                  </h3>
-                  <div className={`p-2.5 rounded-2xl bg-white border border-border/40 shadow-sm ${card.color} group-hover:scale-110 transition-transform duration-500`}>
-                    <Icon className="w-5 h-5" />
-                  </div>
-                </div>
-                <div className="flex items-baseline gap-2 relative z-10">
-                  <p className={`text-5xl font-black tracking-tighter ${card.color}`}>
-                    {card.value}
-                  </p>
-                  {index === 1 && <span className="text-sm font-bold text-muted-foreground">({stats.completionRate}%)</span>}
-                </div>
+        {statItems.map((item, index) => (
+          <div key={index} className="premium-card p-8 group overflow-hidden relative">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-linear-to-br from-zinc-100/20 to-transparent rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-1000"></div>
+            
+            <div className="relative z-10 space-y-4">
+              <div className={`icon-box ${item.color} group-hover:scale-110 transition-transform`}>
+                <item.icon className="w-6 h-6" />
               </div>
               
-              <div className="mt-4 relative z-10 flex items-center gap-1.5">
-                <div className={`flex items-center text-[10px] font-bold px-1.5 py-0.5 rounded-full ${card.trendUp ? 'bg-green-100 text-green-700' : 'bg-rose-100 text-rose-700'}`}>
-                  {card.trendUp ? '▲' : '▼'}
+              <div>
+                <p className="text-[11px] font-black uppercase tracking-[0.2em] text-zinc-400 mb-1">{item.label}</p>
+                <div className="flex items-baseline gap-2">
+                  <h3 className="text-4xl font-black tracking-tight text-zinc-900">{item.value}</h3>
+                  <span className="text-[10px] font-bold text-zinc-400 mb-1">UNIT</span>
                 </div>
-                <span className="text-xs font-medium text-muted-foreground/80">{card.trend}</span>
+              </div>
+
+              <div className="pt-4 border-t border-zinc-50 flex items-center justify-between">
+                <span className="text-[10px] font-bold text-zinc-500">{item.description}</span>
+                <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${item.color.replace('50', '100')}`}>
+                  {item.trend}
+                </span>
               </div>
             </div>
-          );
-        })}
+          </div>
+        ))}
       </div>
 
-      <div className="premium-card p-6 relative overflow-hidden group">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -mr-32 -mt-32 transition-transform duration-1000 group-hover:scale-150"></div>
-        <div className="flex justify-between items-end mb-3 relative z-10">
-          <div>
-            <h3 className="text-lg font-semibold flex items-center gap-2">
-              <div className="w-2 h-6 bg-primary rounded-full"></div>
-              Overall Progress
-            </h3>
-            <p className="text-sm text-muted-foreground mt-1">Based on completed vs total tasks</p>
+      {/* Hero Progress Section */}
+      <div className="premium-card p-10 bg-linear-to-br from-zinc-900 via-indigo-950 to-zinc-950 text-white relative overflow-hidden group">
+        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10"></div>
+        <div className="absolute -right-20 -top-20 w-80 h-80 bg-primary/20 rounded-full blur-[100px] animate-pulse"></div>
+        <div className="absolute -left-20 -bottom-20 w-80 h-80 bg-indigo-500/10 rounded-full blur-[100px] delay-1000"></div>
+
+        <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-12">
+          <div className="space-y-4 max-w-lg text-center lg:text-left">
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/10 backdrop-blur-md rounded-full border border-white/10">
+              <TrendingUp className="w-3 h-3 text-primary-foreground" />
+              <span className="text-[10px] font-black uppercase tracking-widest text-primary-foreground">Performance Metric</span>
+            </div>
+            <h2 className="text-4xl sm:text-5xl font-black tracking-tighter leading-tight">
+              Operational Success <span className="text-primary italic">Manifest</span>
+            </h2>
+            <p className="text-zinc-400 font-medium leading-relaxed">
+              Your overall mission completion velocity is currently exceeding baseline parameters. 
+              Efficiency levels are optimal for high-priority executive objectives.
+            </p>
           </div>
-          <p className="font-bold text-2xl text-primary">{stats.completionRate}%</p>
-        </div>
-        <div className="h-4 w-full bg-secondary rounded-full overflow-hidden relative z-10 shadow-inner">
-          <div 
-            className="h-full bg-linear-to-r from-primary to-purple-500 transition-all duration-1000 ease-out relative"
-            style={{ width: `${stats.completionRate}%` }}
-          >
-            <div className="absolute inset-0 bg-white/20 animate-pulse-subtle"></div>
+
+          <div className="flex flex-col items-center gap-6 min-w-[280px]">
+            <div className="relative w-48 h-48 flex items-center justify-center">
+              <svg className="w-full h-full -rotate-90">
+                <circle
+                  cx="96" cy="96" r="88"
+                  fill="none"
+                  stroke="rgba(255,255,255,0.05)"
+                  strokeWidth="12"
+                />
+                <circle
+                  cx="96" cy="96" r="88"
+                  fill="none"
+                  stroke="url(#progressGradient)"
+                  strokeWidth="12"
+                  strokeDasharray={552.9}
+                  strokeDashoffset={552.9 - (552.9 * stats.completionRate) / 100}
+                  strokeLinecap="round"
+                  className="transition-all duration-1000 ease-out"
+                />
+                <defs>
+                  <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor="var(--primary)" />
+                    <stop offset="100%" stopColor="#818cf8" />
+                  </linearGradient>
+                </defs>
+              </svg>
+              <div className="absolute flex flex-col items-center">
+                <span className="text-5xl font-black tracking-tighter">{stats.completionRate}%</span>
+                <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Yield</span>
+              </div>
+            </div>
+            <div className="flex gap-8 text-[11px] font-black uppercase tracking-[0.2em] text-zinc-500">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-primary shadow-[0_0_10px_rgba(99,102,241,0.5)]"></div>
+                <span>Mission Success</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-white/10"></div>
+                <span>Buffer</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
