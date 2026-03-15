@@ -19,33 +19,33 @@ export default function DashboardStats({ stats }: StatsProps) {
       label: "Total Missions",
       value: stats.total,
       icon: Target,
-      color: "bg-indigo-50 text-indigo-600",
-      trend: "+12% vs last month",
-      description: "Active registry operational capacity"
+      color: "bg-indigo-50/50 text-indigo-600",
+      trend: "+12%",
+      description: "Total registry capacity"
     },
     {
       label: "Completed",
       value: stats.completed,
       icon: CheckCircle2,
-      color: "bg-emerald-50 text-emerald-600",
-      trend: "85% yield rate",
-      description: "Successful mission closures"
+      color: "bg-emerald-50/50 text-emerald-600",
+      trend: "85% Success",
+      description: "Closed operations"
     },
     {
       label: "In Progress",
       value: stats.inProgress,
       icon: Zap,
-      color: "bg-amber-50 text-amber-600",
-      trend: "Peak workflow",
-      description: "Currently executing operations"
+      color: "bg-amber-50/50 text-amber-600",
+      trend: "Optimal",
+      description: "Active execution"
     },
     {
       label: "Overdue",
       value: stats.overdue,
       icon: Clock,
-      color: "bg-rose-50 text-rose-600",
-      trend: "Requires attention",
-      description: "Exceeded operational deadline"
+      color: "bg-rose-50/50 text-rose-600",
+      trend: "Critical",
+      description: "Expiring deadlines"
     }
   ];
 
