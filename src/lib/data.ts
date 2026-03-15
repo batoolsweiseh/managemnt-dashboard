@@ -106,6 +106,14 @@ export async function getRecentTasks() {
   return [...tasks].reverse().slice(0, 5);
 }
 
+export async function getTask(id: string) {
+  const task = tasks.find(t => t.id === id);
+  if (!task) {
+    throw new Error('Task not found');
+  }
+  return task;
+}
+
 export async function getTasks(
   query?: string, 
   status?: string, 
@@ -147,4 +155,38 @@ export async function getTasks(
     limit,
     totalPages
   };
+}
+
+export async function createTask(taskData: Omit<Task, 'id'>) {
+  const newTask: Task = {
+    id: Math.random().toString(36).substring(2, 9),
+    ...taskData
+  };
+  tasks.push(newTask);
+  return newTask;
+}
+
+export async function updateTask(id: string, taskData: Partial<Task>) {
+  const index = tasks.findIndex(t => t.id === id);
+  if (index === -1) {
+    throw new Error('Task not found');
+  }
+  
+  tasks[index] = {
+    ...tasks[index],
+    ...taskData,
+    id // Ensure ID cannot be changed
+  };
+  
+  return tasks[index];
+}
+
+export async function deleteTask(id: string) {
+  const index = tasks.findIndex(t => t.id === id);
+  if (index === -1) {
+    throw new Error('Task not found');
+  }
+  
+  tasks.splice(index, 1);
+  return { success: true };
 }

@@ -3,7 +3,7 @@
 import { signIn, signOut } from "@/auth";
 import { AuthError } from "next-auth";
 import { revalidatePath } from "next/cache";
-import { tasks, Task, TaskStatus, TaskPriority } from "./data";
+import { createTask as createDataTask, updateTask as updateDataTask, deleteTask as deleteDataTask, TaskStatus, TaskPriority } from "./data";
 
 export async function login(prevState: string | undefined, formData: FormData) {
   try {
@@ -26,75 +26,83 @@ export async function logout() {
 }
 
 export async function createTask(formData: FormData) {
-  const title = formData.get('title') as string;
-  const description = formData.get('description') as string;
-  const status = formData.get('status') as TaskStatus;
-  const priority = formData.get('priority') as TaskPriority;
-  const dueDate = formData.get('dueDate') as string;
-  const assignedUser = formData.get('assignedUser') as string;
+  try {
+    const title = formData.get('title') as string;
+    const description = formData.get('description') as string;
+    const status = formData.get('status') as TaskStatus;
+    const priority = formData.get('priority') as TaskPriority;
+    const dueDate = formData.get('dueDate') as string;
+    const assignedUser = formData.get('assignedUser') as string;
 
-  if (!title || !description || !status || !priority || !dueDate || !assignedUser) {
-    return { error: 'All fields are required.' };
+    if (!title || !description || !status || !priority || !dueDate || !assignedUser) {
+      return { error: 'All fields are required.' };
+    }
+
+    await createDataTask({
+      title,
+      description,
+      status,
+      priority,
+      dueDate,
+      assignedUser,
+    });
+
+    revalidatePath('/');
+    revalidatePath('/tasks');
+    return { success: true };
+  } catch (error) {
+    console.error("Failed to create task:", error);
+    return { error: 'Failed to create task.' };
   }
-
-  const newTask: Task = {
-    id: Math.random().toString(36).substring(2, 9),
-    title,
-    description,
-    status,
-    priority,
-    dueDate,
-    assignedUser,
-  };
-
-  tasks.push(newTask);
-  revalidatePath('/');
-  revalidatePath('/tasks');
-  return { success: true };
 }
 
 export async function updateTask(id: string, formData: FormData) {
-  const title = formData.get('title') as string;
-  const description = formData.get('description') as string;
-  const status = formData.get('status') as TaskStatus;
-  const priority = formData.get('priority') as TaskPriority;
-  const dueDate = formData.get('dueDate') as string;
-  const assignedUser = formData.get('assignedUser') as string;
+  try {
+    const title = formData.get('title') as string;
+    const description = formData.get('description') as string;
+    const status = formData.get('status') as TaskStatus;
+    const priority = formData.get('priority') as TaskPriority;
+    const dueDate = formData.get('dueDate') as string;
+    const assignedUser = formData.get('assignedUser') as string;
 
-  const index = tasks.findIndex(t => t.id === id);
-  if (index === -1) return { error: 'Task not found.' };
+    await updateDataTask(id, {
+      title: title || undefined,
+      description: description || undefined,
+      status: status || undefined,
+      priority: priority || undefined,
+      dueDate: dueDate || undefined,
+      assignedUser: assignedUser || undefined,
+    });
 
-  tasks[index] = {
-    ...tasks[index],
-    title: title || tasks[index].title,
-    description: description || tasks[index].description,
-    status: status || tasks[index].status,
-    priority: priority || tasks[index].priority,
-    dueDate: dueDate || tasks[index].dueDate,
-    assignedUser: assignedUser || tasks[index].assignedUser,
-  };
-
-  revalidatePath('/');
-  revalidatePath('/tasks');
-  return { success: true };
+    revalidatePath('/');
+    revalidatePath('/tasks');
+    return { success: true };
+  } catch (error) {
+    console.error("Failed to update task:", error);
+    return { error: 'Failed to update task.' };
+  }
 }
 
 export async function updateTaskStatus(id: string, status: TaskStatus) {
-  const index = tasks.findIndex(t => t.id === id);
-  if (index === -1) return { error: 'Task not found.' };
-
-  tasks[index].status = status;
-  revalidatePath('/');
-  revalidatePath('/tasks');
-  return { success: true };
+  try {
+    await updateDataTask(id, { status });
+    revalidatePath('/');
+    revalidatePath('/tasks');
+    return { success: true };
+  } catch (error) {
+    console.error("Failed to update task status:", error);
+    return { error: 'Failed to update status.' };
+  }
 }
 
 export async function deleteTask(id: string) {
-  const index = tasks.findIndex(t => t.id === id);
-  if (index === -1) return { error: 'Task not found.' };
-
-  tasks.splice(index, 1);
-  revalidatePath('/');
-  revalidatePath('/tasks');
-  return { success: true };
+  try {
+    await deleteDataTask(id);
+    revalidatePath('/');
+    revalidatePath('/tasks');
+    return { success: true };
+  } catch (error) {
+    console.error("Failed to delete task:", error);
+    return { error: 'Failed to delete task.' };
+  }
 }
