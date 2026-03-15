@@ -1,22 +1,22 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
 import { logout } from "@/lib/actions";
-import { LogOut, LayoutDashboard, User, ListTodo } from "lucide-react";
+import { LogOut, LayoutDashboard, User, ListTodo, ChevronDown, Settings, Shield } from "lucide-react";
 import type { Session } from "next-auth";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState, useEffect, useRef } from "react";
 
 export default function Navbar({ session }: { session: Session | null }) {
   const pathname = usePathname();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Close menu when clicking outside
+  // Close dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setIsMenuOpen(false);
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -25,69 +25,133 @@ export default function Navbar({ session }: { session: Session | null }) {
 
   if (!session?.user) return null;
 
+  const userInitials = session.user.name 
+    ? session.user.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2)
+    : session.user.email?.substring(0, 2).toUpperCase() || "OP";
+
   return (
-    <nav className="sticky top-0 z-50 w-full border-b bg-white/80 backdrop-blur-md border-zinc-100">
-      <div className="max-w-7xl mx-auto flex h-16 items-center px-4 sm:px-6 lg:px-8">
-        <Link href="/" className="flex gap-2 items-center font-black text-2xl tracking-tighter text-zinc-900 mr-10 transition-all hover:opacity-80 active:scale-95">
-          <div className="w-8 h-8 bg-zinc-900 rounded-lg flex items-center justify-center">
-            <LayoutDashboard className="h-5 w-5 text-white" />
+    <nav className="sticky top-0 z-[60] w-full border-b border-zinc-100 bg-white/70 backdrop-blur-xl">
+      <div className="max-w-7xl mx-auto flex h-20 items-center px-4 md:px-8">
+        {/* Logo Section */}
+        <Link href="/" className="flex gap-2.5 items-center mr-12 group">
+          <div className="relative">
+            <div className="absolute inset-0 bg-primary/20 blur-lg rounded-full group-hover:bg-primary/30 transition-all duration-500"></div>
+            <div className="relative bg-zinc-900 p-2 rounded-xl text-white shadow-xl group-hover:scale-110 group-hover:rotate-6 transition-all duration-500">
+              <LayoutDashboard className="h-6 w-6" />
+            </div>
           </div>
-          <span className="bg-clip-text text-transparent bg-linear-to-r from-zinc-900 to-zinc-500">TaskFlow</span>
+          <div className="flex flex-col -space-y-1">
+            <span className="font-black text-xl tracking-tighter text-zinc-900 group-hover:text-primary transition-colors">TASKFLOW</span>
+            <span className="text-[10px] font-black tracking-[0.2em] text-zinc-400">OS V5.0</span>
+          </div>
         </Link>
 
-        <div className="flex items-center gap-1">
+        {/* Navigation Links */}
+        <div className="hidden md:flex items-center gap-1 bg-zinc-50 p-1.5 rounded-2xl border border-zinc-100">
           <Link 
             href="/" 
-            className={`px-4 py-2 rounded-xl text-sm font-bold transition-all hover:bg-zinc-50 ${pathname === '/' ? 'text-zinc-900 bg-zinc-50' : 'text-zinc-500 hover:text-zinc-900'}`}
+            className={`px-6 py-2 rounded-xl text-sm font-black tracking-tight transition-all duration-300 ${
+              pathname === '/' 
+                ? 'bg-white text-zinc-900 shadow-sm shadow-zinc-200' 
+                : 'text-zinc-500 hover:text-zinc-900'
+            }`}
           >
             Overview
           </Link>
           <Link 
             href="/tasks" 
-            className={`px-4 py-2 rounded-xl text-sm font-bold transition-all hover:bg-zinc-50 flex items-center gap-2 ${pathname === '/tasks' ? 'text-zinc-900 bg-zinc-50' : 'text-zinc-500 hover:text-zinc-900'}`}
+            className={`px-6 py-2 rounded-xl text-sm font-black tracking-tight transition-all duration-300 flex items-center gap-2 ${
+              pathname === '/tasks' 
+                ? 'bg-white text-zinc-900 shadow-sm shadow-zinc-200' 
+                : 'text-zinc-500 hover:text-zinc-900'
+            }`}
           >
             <ListTodo className="w-4 h-4" />
             Missions
           </Link>
         </div>
 
-        <div className="ml-auto relative" ref={menuRef}>
+        {/* User Profile Section */}
+        <div className="ml-auto relative" ref={dropdownRef}>
           <button
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className={`flex items-center gap-3 pl-3 pr-4 py-1.5 rounded-2xl border transition-all active:scale-95 ${
-              isMenuOpen 
-              ? 'bg-zinc-900 border-zinc-900 text-white shadow-lg' 
-              : 'bg-zinc-50 border-zinc-100 text-zinc-900 hover:border-zinc-200 shadow-xs'
+            onClick={() => setIsOpen(!isOpen)}
+            className={`flex items-center gap-3 p-1.5 pr-4 rounded-2xl transition-all duration-300 border ${
+              isOpen 
+                ? 'bg-zinc-950 border-zinc-900 text-white shadow-2xl' 
+                : 'bg-white border-zinc-100 hover:border-zinc-300 hover:shadow-md'
             }`}
           >
-            <div className={`w-7 h-7 rounded-lg flex items-center justify-center transition-colors ${isMenuOpen ? 'bg-white/20' : 'bg-zinc-900'}`}>
-              <User className={`h-4 w-4 ${isMenuOpen ? 'text-white' : 'text-white'}`} />
+            <div className={`w-10 h-10 rounded-[14px] flex items-center justify-center font-black text-sm transition-all duration-500 ${
+              isOpen ? 'bg-primary text-white scale-90' : 'bg-zinc-100 text-zinc-600'
+            }`}>
+              {userInitials}
             </div>
-            <span className="text-xs font-black tracking-tight hidden sm:block">
-              {(session.user.name || session.user.email || 'Agent').split('@')[0].toUpperCase()}
-            </span>
+            <div className="flex flex-col items-start -space-y-0.5 text-left">
+              <span className={`text-[11px] font-black uppercase tracking-widest ${isOpen ? 'text-zinc-400' : 'text-zinc-400'}`}>Agent Profile</span>
+              <span className="text-sm font-bold truncate max-w-[120px]">{session.user.name || "Special Operative"}</span>
+            </div>
+            <ChevronDown className={`w-4 h-4 transition-transform duration-500 ${isOpen ? 'rotate-180 text-primary' : 'text-zinc-400'}`} />
           </button>
 
           {/* Premium Dropdown Menu */}
-          {isMenuOpen && (
-            <div className="absolute right-0 mt-3 w-56 p-2 bg-white rounded-[1.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-zinc-100 animate-in fade-in zoom-in-95 duration-200 ease-out z-[60]">
-              <div className="px-4 py-3 mb-2 bg-zinc-50/50 rounded-xl">
-                <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest leading-none mb-1">Authenticated As</p>
-                <p className="text-sm font-bold text-zinc-900 truncate">{session.user.email}</p>
-              </div>
-              
-              <button
-                onClick={() => {
-                  setIsMenuOpen(false);
-                  logout();
-                }}
-                className="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold text-rose-500 hover:bg-rose-50 rounded-xl transition-all group active:scale-95"
-              >
-                <div className="p-1.5 bg-rose-100 text-rose-600 rounded-lg group-hover:bg-rose-500 group-hover:text-white transition-colors">
-                  <LogOut className="h-4 w-4" />
+          {isOpen && (
+            <div className="absolute right-0 mt-3 w-72 bg-white rounded-[2rem] border border-zinc-100 shadow-[0_20px_50px_rgba(0,0,0,0.15)] overflow-hidden animate-in fade-in zoom-in-95 slide-in-from-top-4 duration-300 origin-top-right">
+              {/* Profile Header */}
+              <div className="p-6 bg-zinc-50/50 border-b border-zinc-100">
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 bg-linear-to-tr from-primary to-indigo-600 rounded-2xl flex items-center justify-center text-white text-xl font-black shadow-lg shadow-primary/20">
+                    {userInitials}
+                  </div>
+                  <div className="flex flex-col">
+                    <div className="flex items-center gap-1.5 px-2 py-0.5 bg-green-50 rounded-full border border-green-100 w-fit mb-1">
+                      <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
+                      <span className="text-[10px] font-black text-green-600 uppercase tracking-widest">Active Status</span>
+                    </div>
+                    <span className="font-black text-zinc-900 truncate max-w-[140px]">{session.user.name || "Operative"}</span>
+                    <span className="text-xs font-medium text-zinc-400 truncate max-w-[140px]">{session.user.email}</span>
+                  </div>
                 </div>
-                Terminates Session
-              </button>
+              </div>
+
+              {/* Menu Items */}
+              <div className="p-3 bg-white">
+                <div className="space-y-1">
+                  <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 transition-all font-bold text-sm group">
+                    <div className="w-8 h-8 rounded-lg bg-zinc-100 flex items-center justify-center group-hover:bg-white transition-colors">
+                      <User className="w-4 h-4" />
+                    </div>
+                    Account Settings
+                  </button>
+                  <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 transition-all font-bold text-sm group">
+                    <div className="w-8 h-8 rounded-lg bg-zinc-100 flex items-center justify-center group-hover:bg-white transition-colors">
+                      <Shield className="w-4 h-4" />
+                    </div>
+                    Security Protocol
+                  </button>
+                </div>
+
+                <div className="my-3 mx-2 h-px bg-zinc-100"></div>
+
+                <button
+                  onClick={() => logout()}
+                  className="w-full flex items-center justify-between px-4 py-4 rounded-[1.25rem] bg-rose-50 hover:bg-rose-100 text-rose-600 transition-all duration-300 group shadow-sm hover:shadow-md"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-rose-600 text-white flex items-center justify-center shadow-lg shadow-rose-200 group-hover:scale-110 transition-transform duration-300">
+                      <LogOut className="w-5 h-5" />
+                    </div>
+                    <div className="flex flex-col items-start leading-none">
+                      <span className="font-black text-sm">Terminate Session</span>
+                      <span className="text-[10px] font-bold opacity-60 uppercase tracking-widest mt-0.5">Logout Securely</span>
+                    </div>
+                  </div>
+                </button>
+              </div>
+
+              {/* Footer */}
+              <div className="px-6 py-4 bg-zinc-50/50 text-center">
+                <span className="text-[10px] font-black text-zinc-300 uppercase tracking-[0.2em]">Secure Node 01-A</span>
+              </div>
             </div>
           )}
         </div>
