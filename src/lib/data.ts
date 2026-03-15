@@ -106,7 +106,14 @@ export async function getRecentTasks() {
   return [...tasks].reverse().slice(0, 5);
 }
 
-export async function getTasks(query?: string, status?: string, priority?: string, dueDate?: string) {
+export async function getTasks(
+  query?: string, 
+  status?: string, 
+  priority?: string, 
+  dueDate?: string,
+  page: number = 1,
+  limit: number = 10
+) {
   let filteredTasks = [...tasks];
 
   if (query) {
@@ -128,5 +135,16 @@ export async function getTasks(query?: string, status?: string, priority?: strin
     filteredTasks = filteredTasks.filter(t => t.dueDate === dueDate);
   }
 
-  return filteredTasks;
+  const total = filteredTasks.length;
+  const totalPages = Math.ceil(total / limit);
+  const startIndex = (page - 1) * limit;
+  const paginatedTasks = filteredTasks.slice(startIndex, startIndex + limit);
+
+  return {
+    tasks: paginatedTasks,
+    total,
+    page,
+    limit,
+    totalPages
+  };
 }

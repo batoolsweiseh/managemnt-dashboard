@@ -4,6 +4,7 @@ import TaskList from "@/components/TaskList";
 import TaskFilters from "@/components/TaskFilters";
 import { Plus, ListTodo, Sliders } from "lucide-react";
 import CreateTaskButton from "@/components/CreateTaskButton";
+import Pagination from "@/components/Pagination";
 
 interface PageProps {
   searchParams: Promise<{
@@ -11,12 +12,21 @@ interface PageProps {
     status?: string;
     priority?: string;
     dueDate?: string;
+    page?: string;
   }>;
 }
 
 export default async function TasksPage({ searchParams }: PageProps) {
   const params = await searchParams;
-  const tasks = await getTasks(params.query, params.status, params.priority, params.dueDate);
+  const currentPage = Number(params.page) || 1;
+  const { tasks, total, totalPages } = await getTasks(
+    params.query, 
+    params.status, 
+    params.priority, 
+    params.dueDate,
+    currentPage,
+    10 // Limit
+  );
 
   return (
     <div className="flex flex-col gap-10 max-w-7xl mx-auto py-8">
@@ -40,8 +50,8 @@ export default async function TasksPage({ searchParams }: PageProps) {
         
         <div className="mt-8 flex items-center justify-between pt-6 border-t border-zinc-100">
           <div className="flex items-center gap-2 text-[10px] font-bold text-zinc-400">
-            <div className={`w-2 h-2 rounded-full ${tasks.length > 0 ? 'bg-green-500 animate-pulse' : 'bg-zinc-300'}`} />
-            <span>{tasks.length} {tasks.length === 1 ? 'OBJECTIVE' : 'OBJECTIVES'} IDENTIFIED</span>
+            <div className={`w-2 h-2 rounded-full ${total > 0 ? 'bg-green-500 animate-pulse' : 'bg-zinc-300'}`} />
+            <span>{total} {total === 1 ? 'OBJECTIVE' : 'OBJECTIVES'} IDENTIFIED</span>
           </div>
         </div>
       </div>
@@ -56,6 +66,8 @@ export default async function TasksPage({ searchParams }: PageProps) {
         }>
           <TaskList tasks={tasks} />
         </Suspense>
+
+        <Pagination totalPages={totalPages} currentPage={currentPage} />
       </div>
     </div>
   );
