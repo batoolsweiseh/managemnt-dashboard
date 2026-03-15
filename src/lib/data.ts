@@ -11,8 +11,12 @@ export interface Task {
   assignedUser: string;
 }
 
-// Mock tasks data
-export let tasks: Task[] = [
+// Use global state to persist tasks during development and prevent resets on hot-reload
+declare global {
+  var _tasks: Task[] | undefined;
+}
+
+const initialTasks: Task[] = [
   { 
     id: '1', 
     title: 'Design landing page', 
@@ -85,7 +89,49 @@ export let tasks: Task[] = [
     dueDate: '2026-03-07',
     assignedUser: 'Jane Smith'
   },
+  { 
+    id: '9', 
+    title: 'Security audit', 
+    description: 'Review the codebase for any potential security vulnerabilities.',
+    status: 'Pending', 
+    priority: 'High',
+    dueDate: '2026-03-20',
+    assignedUser: 'John Doe'
+  },
+  { 
+    id: '10', 
+    title: 'Optimize images', 
+    description: 'Compress and optimize all static images for better performance.',
+    status: 'Completed', 
+    priority: 'Low',
+    dueDate: '2026-03-10',
+    assignedUser: 'Bob Wilson'
+  },
+  { 
+    id: '11', 
+    title: 'Mobile responsiveness', 
+    description: 'Ensure the dashboard is fully responsive on mobile devices.',
+    status: 'In Progress', 
+    priority: 'Medium',
+    dueDate: '2026-03-18',
+    assignedUser: 'Alice Green'
+  },
+  { 
+    id: '12', 
+    title: 'Add dark mode', 
+    description: 'Implement dark mode toggle and styles.',
+    status: 'Pending', 
+    priority: 'Medium',
+    dueDate: '2026-03-25',
+    assignedUser: 'John Doe'
+  }
 ];
+
+if (!globalThis._tasks) {
+  globalThis._tasks = [...initialTasks];
+}
+
+export const tasks = globalThis._tasks;
 
 export async function getDashboardStats() {
   const total = tasks.length;
@@ -142,6 +188,10 @@ export async function getTasks(
   if (dueDate) {
     filteredTasks = filteredTasks.filter(t => t.dueDate === dueDate);
   }
+
+  // Sort by newest first (assuming higher ID or simply the order they were pushed)
+  // Reversing the array since new items are pushed to the end
+  filteredTasks.reverse();
 
   const total = filteredTasks.length;
   const totalPages = Math.ceil(total / limit);
