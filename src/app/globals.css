@@ -64,6 +64,7 @@
   --radius-2xl: calc(var(--radius) + 8px);
   --radius-xl: var(--radius);
   --radius-lg: calc(var(--radius) - 4px);
+  --animate-mesh: mesh 20s ease infinite;
 }
 
 @layer base {
@@ -79,7 +80,7 @@
 }
 
 @layer utilities {
-  .bg-mesh-gradient {
+  .bg-animated-mesh {
     position: fixed;
     top: 0;
     left: 0;
@@ -88,10 +89,11 @@
     z-index: -1;
     background-color: #ffffff;
     background-image: 
-      radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.05) 0, transparent 50%), 
-      radial-gradient(at 100% 0%, rgba(168, 85, 247, 0.05) 0, transparent 50%),
-      radial-gradient(at 100% 100%, rgba(99, 102, 241, 0.05) 0, transparent 50%),
-      radial-gradient(at 0% 100%, rgba(168, 85, 247, 0.05) 0, transparent 50%);
+      radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.08) 0, transparent 50%), 
+      radial-gradient(at 100% 0%, rgba(168, 85, 247, 0.08) 0, transparent 50%),
+      radial-gradient(at 100% 100%, rgba(99, 102, 241, 0.08) 0, transparent 50%),
+      radial-gradient(at 0% 100%, rgba(168, 85, 247, 0.08) 0, transparent 50%);
+    @apply animate-mesh;
   }
 
   .premium-glass {
@@ -118,6 +120,11 @@
 @keyframes float {
   0%, 100% { transform: translateY(0) rotate(0); }
   50% { transform: translateY(-10px) rotate(1deg); }
+}
+
+@keyframes mesh {
+  0%, 100% { background-position: 0% 0%; }
+  50% { background-position: 100% 100%; }
 }
 
 .animate-float {
