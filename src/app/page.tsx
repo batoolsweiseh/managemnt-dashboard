@@ -16,7 +16,6 @@ export default async function DashboardPage() {
       { name: 'Completed', value: stats.completed },
       { name: 'In Progress', value: stats.inProgress },
       { name: 'Pending', value: stats.pending },
-      { name: 'Overdue', value: stats.overdue },
     ],
     priorityData: stats.priorityDistribution
   };
