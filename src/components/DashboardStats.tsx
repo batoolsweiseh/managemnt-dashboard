@@ -10,17 +10,20 @@ interface StatsProps {
     pending: number;
     overdue: number;
     completionRate: number;
+    totalTrend?: string;
   };
+  role?: string;
 }
 
-export default function DashboardStats({ stats }: StatsProps) {
+export default function DashboardStats({ stats, role = 'User' }: StatsProps) {
+  const COLORS = ['var(--primary)', '#10b981', '#f59e0b', '#f43f5e'];
   const statItems = [
     {
-      label: "Total Missions",
+      label: role === 'Admin' ? "System Missions" : "My Missions",
       value: stats.total,
       icon: Target,
-      color: "bg-indigo-50/50 text-indigo-600",
-      trend: "+12%",
+      color: "bg-primary/10 text-primary",
+      trend: (stats as any).totalTrend || "+0%",
       description: "Total registry capacity"
     },
     {
@@ -135,7 +138,7 @@ export default function DashboardStats({ stats }: StatsProps) {
             </div>
             <div className="flex gap-8 text-[11px] font-black uppercase tracking-[0.2em] text-zinc-500">
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-primary shadow-[0_0_10px_rgba(99,102,241,0.5)]"></div>
+                <div className="w-2 h-2 rounded-full bg-primary shadow-[0_0_10px_rgba(var(--primary-rgb),0.5)]"></div>
                 <span>Mission Success</span>
               </div>
               <div className="flex items-center gap-2">

@@ -1,18 +1,22 @@
 "use client";
 
-import { Task, TaskStatus, TaskPriority } from "@/lib/data";
+import { Task, TaskStatus, TaskPriority } from "@/lib/types";
 import { X, Calendar, User, Tag, AlignLeft, ShieldCheck, Sparkles } from "lucide-react";
 import { createTask, updateTask } from "@/lib/actions";
 import { useState, useTransition } from "react";
 
 interface TaskFormDialogProps {
   task?: Task | null;
+  users: { id: string, name: string }[];
   onClose: () => void;
+  userRole?: 'Admin' | 'User';
 }
 
-export default function TaskFormDialog({ task, onClose }: TaskFormDialogProps) {
+export default function TaskFormDialog({ task, users, onClose, userRole = 'Admin' }: TaskFormDialogProps) {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [selectedUserId, setSelectedUserId] = useState(task?.assignedUserId || '');
+  const [selectedUserName, setSelectedUserName] = useState(task?.assignedUser || '');
 
   async function handleSubmit(formData: FormData) {
     setError(null);
@@ -133,7 +137,7 @@ export default function TaskFormDialog({ task, onClose }: TaskFormDialogProps) {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className={`grid gap-4 ${userRole === 'Admin' ? 'grid-cols-2' : 'grid-cols-1'}`}>
                 {/* Due Date */}
                 <div className="space-y-1.5">
                   <label className="text-[11px] font-bold uppercase tracking-wider text-zinc-500 ml-1">
@@ -151,22 +155,44 @@ export default function TaskFormDialog({ task, onClose }: TaskFormDialogProps) {
                   </div>
                 </div>
 
-                {/* Assigned User */}
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-bold uppercase tracking-wider text-zinc-500 ml-1">
-                    Operative
-                  </label>
-                  <div className="relative group">
-                    <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 group-focus-within:text-primary transition-colors" />
-                    <input
-                      name="assignedUser"
-                      required
-                      defaultValue={task?.assignedUser}
-                      placeholder="Name..."
-                      className="w-full h-12 pl-11 pr-4 bg-zinc-50 border border-zinc-200 focus:border-primary focus:ring-4 focus:ring-primary/5 rounded-xl outline-none transition-all font-bold text-zinc-900"
-                    />
+                {/* Assigned User — Admin selects from list */}
+                {userRole === 'Admin' && (
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-bold uppercase tracking-wider text-zinc-500 ml-1">
+                      Operative
+                    </label>
+                    <div className="relative group">
+                      <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 pointer-events-none group-focus-within:text-primary transition-colors" />
+                      <select
+                        name="assignedUserId"
+                        required
+                        value={selectedUserId}
+                        onChange={(e) => {
+                          const id = e.target.value;
+                          const name = users.find(u => u.id === id)?.name || '';
+                          setSelectedUserId(id);
+                          setSelectedUserName(name);
+                        }}
+                        className="w-full h-12 pl-11 pr-4 bg-zinc-50 border border-zinc-200 focus:border-primary focus:ring-4 focus:ring-primary/5 rounded-xl outline-none transition-all font-semibold text-zinc-900 appearance-none cursor-pointer"
+                      >
+                        <option value="" disabled>Select an operative...</option>
+                        {users.map(u => (
+                          <option key={u.id} value={u.id}>{u.name}</option>
+                        ))}
+                      </select>
+                      {/* Hidden input for assignedUser name */}
+                      <input type="hidden" name="assignedUser" value={selectedUserName} />
+                    </div>
                   </div>
-                </div>
+                )}
+
+                {/* For Users: auto-assign to themselves */}
+                {userRole === 'User' && (
+                  <>
+                    <input type="hidden" name="assignedUser" value={task?.assignedUser || ''} />
+                    <input type="hidden" name="assignedUserId" value={task?.assignedUserId || ''} />
+                  </>
+                )}
               </div>
             </div>
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { Task } from "@/lib/data";
+import { Task } from "@/lib/types";
 import { 
   Calendar, 
   User, 
@@ -12,18 +12,24 @@ import {
   CheckCircle2,
   Clock,
   ExternalLink,
-  ChevronRight
+  ChevronRight,
+  History as HistoryIcon
 } from "lucide-react";
 import { deleteTask, updateTaskStatus } from "@/lib/actions";
 import { useState } from "react";
 import TaskFormDialog from "./TaskFormDialog";
+import TaskHistoryDialog from "./TaskHistoryDialog";
 
 interface TaskListProps {
   tasks: Task[];
+  userRole: "Admin" | "User";
+  users: { id: string, name: string }[];
+  currentUserId?: string;
 }
 
-export default function TaskList({ tasks }: TaskListProps) {
+export default function TaskList({ tasks, userRole, users, currentUserId }: TaskListProps) {
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [historyTask, setHistoryTask] = useState<Task | null>(null);
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
@@ -71,7 +77,10 @@ export default function TaskList({ tasks }: TaskListProps) {
                   <select 
                     value={task.status}
                     onChange={(e) => updateTaskStatus(task.id, e.target.value as any)}
-                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                    disabled={userRole !== 'Admin' && task.assignedUserId !== currentUserId}
+                    className={`absolute inset-0 w-full h-full opacity-0 z-10 ${
+                      (userRole === 'Admin' || task.assignedUserId === currentUserId) ? 'cursor-pointer' : 'cursor-not-allowed'
+                    }`}
                   >
                     <option value="Pending">Pending</option>
                     <option value="In Progress">In Progress</option>
@@ -100,7 +109,6 @@ export default function TaskList({ tasks }: TaskListProps) {
                 <div className="flex items-center gap-3">
                   <h3 className="text-xl font-black tracking-tight text-zinc-900 group-hover:text-primary transition-colors cursor-pointer flex items-center gap-2">
                     {task.title}
-                    <ExternalLink className="w-3.5 h-3.5 opacity-0 group-hover:opacity-40 transition-opacity" />
                   </h3>
                 </div>
                 <p className="text-zinc-500 font-medium leading-relaxed max-w-3xl text-sm line-clamp-2">
@@ -121,18 +129,40 @@ export default function TaskList({ tasks }: TaskListProps) {
 
               {/* Actions */}
               <div className="flex items-center justify-end gap-3 lg:border-l border-zinc-100 lg:pl-8">
-                <button 
-                  onClick={() => setEditingTask(task)}
-                  className="w-10 h-10 rounded-xl bg-zinc-50 text-zinc-400 hover:bg-zinc-900 hover:text-white transition-all duration-300 flex items-center justify-center group/btn shadow-sm"
-                >
-                  <Edit3 className="w-4 h-4 group-hover/btn:rotate-12 transition-transform" />
-                </button>
-                <button 
-                  onClick={() => deleteTask(task.id)}
-                  className="w-10 h-10 rounded-xl bg-rose-50 text-rose-400 hover:bg-rose-600 hover:text-white transition-all duration-300 flex items-center justify-center group/btn shadow-sm"
-                >
-                  <Trash2 className="w-4 h-4 group-hover/btn:scale-110 transition-transform" />
-                </button>
+                {/* History button: Admin and User who owns the task */}
+                {(userRole === 'Admin' || (userRole === 'User' && task.assignedUserId === currentUserId)) && (
+                  <button 
+                    onClick={() => setHistoryTask(task)}
+                    title="View History"
+                    className="w-10 h-10 rounded-xl bg-zinc-50 text-zinc-400 hover:bg-primary hover:text-white transition-all duration-300 flex items-center justify-center group/btn shadow-sm"
+                  >
+                    <HistoryIcon className="w-4 h-4" />
+                  </button>
+                )}
+                
+                {/* Edit button: Admin ONLY (Users use status dropdown) */}
+                {userRole === 'Admin' && (
+                  <button 
+                    onClick={() => setEditingTask(task)}
+                    className="w-10 h-10 rounded-xl bg-zinc-50 text-zinc-400 hover:bg-zinc-900 hover:text-white transition-all duration-300 flex items-center justify-center group/btn shadow-sm"
+                  >
+                    <Edit3 className="w-4 h-4 group-hover/btn:rotate-12 transition-transform" />
+                  </button>
+                )}
+                {/* Delete button: Admin ONLY */}
+                {userRole === 'Admin' && (
+                  <button 
+                    onClick={() => deleteTask(task.id)}
+                    className="w-10 h-10 rounded-xl bg-rose-50 text-rose-400 hover:bg-rose-600 hover:text-white transition-all duration-300 flex items-center justify-center group/btn shadow-sm"
+                  >
+                    <Trash2 className="w-4 h-4 group-hover/btn:scale-110 transition-transform" />
+                  </button>
+                )}
+                {userRole === 'User' && task.assignedUserId !== currentUserId && (
+                  <div className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest px-3 py-2 bg-zinc-50 rounded-xl border border-zinc-100">
+                    ReadOnly Mode
+                  </div>
+                )}
                 <div className="hidden lg:flex w-10 h-10 rounded-xl items-center justify-center text-zinc-300 group-hover:text-zinc-600 transition-colors">
                    <ChevronRight className="w-5 h-5" />
                 </div>
@@ -145,7 +175,17 @@ export default function TaskList({ tasks }: TaskListProps) {
       {editingTask && (
         <TaskFormDialog 
           task={editingTask} 
+          users={users}
+          userRole={userRole}
           onClose={() => setEditingTask(null)} 
+        />
+      )}
+
+      {historyTask && (
+        <TaskHistoryDialog
+          taskId={historyTask.id}
+          taskTitle={historyTask.title}
+          onClose={() => setHistoryTask(null)}
         />
       )}
     </>

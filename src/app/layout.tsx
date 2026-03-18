@@ -18,9 +18,13 @@ export default async function RootLayout({
 }) {
   const session = await auth();
 
+  const role = session?.user ? (session.user as any)?.role : undefined;
+
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.className} min-h-screen bg-background antialiased selection:bg-primary/30`}>
+    <html lang="en" data-role={role} suppressHydrationWarning>
+      <body
+        className={`${inter.className} min-h-screen bg-background antialiased selection:bg-primary/30`}
+      >
         <div className="bg-animated-mesh" />
         <Navbar session={session} />
         <main className="container mx-auto px-4 py-8">

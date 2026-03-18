@@ -4,8 +4,15 @@ import { Plus, Sparkles } from "lucide-react";
 import { useState } from "react";
 import TaskFormDialog from "./TaskFormDialog";
 
-export default function CreateTaskButton() {
+interface CreateTaskButtonProps {
+  users: { id: string, name: string }[];
+  userRole?: 'Admin' | 'User';
+}
+
+export default function CreateTaskButton({ users, userRole = 'Admin' }: CreateTaskButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
+  
+  if (userRole !== 'Admin') return null;
 
   return (
     <>
@@ -19,12 +26,18 @@ export default function CreateTaskButton() {
             <Plus className="h-5 w-5 transition-transform duration-500 group-hover:rotate-180" />
             <Sparkles className="absolute -top-1 -right-1 w-3 h-3 text-primary animate-pulse group-hover:scale-125 transition-transform" />
           </div>
-          <span className="text-sm uppercase tracking-widest font-black">Begin Strategy</span>
+          <span className="text-sm uppercase tracking-widest font-black">
+            {userRole === 'Admin' ? 'New Objective' : 'Add My Task'}
+          </span>
         </div>
       </button>
 
       {isOpen && (
-        <TaskFormDialog onClose={() => setIsOpen(false)} />
+        <TaskFormDialog 
+          users={users} 
+          userRole={userRole}
+          onClose={() => setIsOpen(false)} 
+        />
       )}
     </>
   );

@@ -18,7 +18,7 @@ export default function LoginPage() {
             </div>
             <h1 className="text-3xl font-bold tracking-tight text-foreground">Welcome Back</h1>
             <p className="text-sm text-muted-foreground">
-              Sign in to manage your tasks efficiently
+              Sign in to manage your tasks efficiently — select the role that matches your account.
             </p>
           </div>
           <LoginForm />

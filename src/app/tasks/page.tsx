@@ -1,9 +1,11 @@
 import { Suspense } from "react";
-import { getTasks } from "@/lib/data";
+import { getTasks, getAllUsers } from "@/lib/data";
 import TaskList from "@/components/TaskList";
 import TaskFilters from "@/components/TaskFilters";
 import { Plus, ListTodo, Sliders } from "lucide-react";
 import CreateTaskButton from "@/components/CreateTaskButton";
+import { auth } from "@/auth";
+import { redirect } from "next/navigation";
 import Pagination from "@/components/Pagination";
 
 interface PageProps {
@@ -17,6 +19,15 @@ interface PageProps {
 }
 
 export default async function TasksPage({ searchParams }: PageProps) {
+  const session = await auth();
+
+  if (!session || !session.user) {
+    redirect("/login");
+  }
+
+  const userRole = (session.user as any).role;
+  const userId = session.user.id;
+
   const params = await searchParams;
   const currentPage = Number(params.page) || 1;
   const { tasks, total, totalPages } = await getTasks(
@@ -25,8 +36,11 @@ export default async function TasksPage({ searchParams }: PageProps) {
     params.priority, 
     params.dueDate,
     currentPage,
-    10 // Limit
+    10,
+    userRole === 'Admin' ? undefined : userId
   );
+
+  const users = await getAllUsers();
 
   return (
     <div className="flex flex-col gap-10 max-w-7xl mx-auto py-8">
@@ -40,7 +54,7 @@ export default async function TasksPage({ searchParams }: PageProps) {
           <h1 className="text-4xl font-black tracking-tight text-zinc-900 sm:text-5xl">Mission Control</h1>
           <p className="text-zinc-500 font-medium italic">Execute and manage operational tasks with precision</p>
         </div>
-        <CreateTaskButton />
+        <CreateTaskButton users={users} userRole={userRole} />
       </div>
 
       {/* Filter & Search Dashboard - Premium Background */}
@@ -64,7 +78,12 @@ export default async function TasksPage({ searchParams }: PageProps) {
             <span className="text-xs font-black uppercase tracking-widest text-zinc-400">Synchronizing...</span>
           </div>
         }>
-          <TaskList tasks={tasks} />
+          <TaskList 
+            tasks={tasks} 
+            userRole={userRole} 
+            users={users} 
+            currentUserId={userId} 
+          />
         </Suspense>
 
         <Pagination totalPages={totalPages} currentPage={currentPage} />

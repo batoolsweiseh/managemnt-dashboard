@@ -22,7 +22,7 @@ interface ChartsProps {
   };
 }
 
-const COLORS = ['#6366f1', '#10b981', '#f59e0b', '#f43f5e'];
+const COLORS = ['var(--primary)', '#10b981', '#f59e0b', '#f43f5e'];
 
 export default function DashboardCharts({ data }: ChartsProps) {
   return (

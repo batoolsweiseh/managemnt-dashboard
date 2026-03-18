@@ -2,24 +2,18 @@
 
 import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { login } from "@/lib/actions";
-import { Loader2, ArrowRight, Mail, Lock, ShieldCheck, UserCircle } from "lucide-react";
+import { signup } from "@/lib/actions";
+import { Loader2, ArrowRight, Mail, Lock, User, ShieldCheck, UserCircle } from "lucide-react";
 import Link from "next/link";
 
-export default function LoginForm() {
+export default function SignupForm() {
   const router = useRouter();
   const [role, setRole] = useState<'Admin' | 'User'>('User');
   const [submitted, setSubmitted] = useState(false);
   const [errorMessage, formAction, isPending] = useActionState(
-    login,
+    signup,
     undefined
   );
-
-  useEffect(() => {
-    if (submitted && !isPending && !errorMessage) {
-      router.push('/');
-    }
-  }, [submitted, isPending, errorMessage, router]);
 
   useEffect(() => {
     document.documentElement.dataset.role = role;
@@ -28,20 +22,26 @@ export default function LoginForm() {
     };
   }, [role]);
 
+  useEffect(() => {
+    if (submitted && !isPending && !errorMessage) {
+      router.push('/');
+    }
+  }, [submitted, isPending, errorMessage, router]);
+
   return (
     <form action={formAction} onSubmit={() => setSubmitted(true)} className="space-y-6">
-      {/* Premium Role Selector */}
-      <div className="space-y-3 mb-6">
+      {/* Premium Role Selection Section */}
+      <div className="space-y-3 mb-8">
         <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 ml-1">
-          Select Authority Level
+          Define Operational Authority
         </label>
         <div className="grid grid-cols-2 gap-4">
           <button
             type="button"
             onClick={() => setRole('User')}
             className={`relative overflow-hidden group p-5 flex flex-col items-center gap-3 rounded-[2rem] border-2 transition-all duration-500 ${
-              role === 'User'
-                ? 'bg-primary/5 border-primary shadow-[0_20px_40px_-10px_rgba(var(--primary-rgb),0.3)]'
+              role === 'User' 
+                ? 'bg-primary/5 border-primary shadow-[0_20px_40px_-10px_rgba(var(--primary-rgb),0.3)]' 
                 : 'bg-zinc-50/50 border-zinc-100 hover:border-zinc-300 hover:bg-white'
             }`}
           >
@@ -74,8 +74,8 @@ export default function LoginForm() {
             type="button"
             onClick={() => setRole('Admin')}
             className={`relative overflow-hidden group p-5 flex flex-col items-center gap-3 rounded-[2rem] border-2 transition-all duration-500 ${
-              role === 'Admin'
-                ? 'bg-zinc-900 border-zinc-900 shadow-[0_20px_40px_-10px_rgba(0,0,0,0.3)]'
+              role === 'Admin' 
+                ? 'bg-zinc-900 border-zinc-900 shadow-[0_20px_40px_-10px_rgba(0,0,0,0.3)]' 
                 : 'bg-zinc-50/50 border-zinc-100 hover:border-zinc-300 hover:bg-white'
             }`}
           >
@@ -113,12 +113,28 @@ export default function LoginForm() {
       <div className="space-y-3">
         <div className="flex items-center gap-2 text-primary">
           <div className="p-1.5 rounded-lg bg-primary/10 border border-primary/20">
+            <User className="h-4 w-4" />
+          </div>
+          <label htmlFor="name" className="text-sm font-semibold tracking-tight text-foreground">
+            Full Name
+          </label>
+        </div>
+        <input
+          id="name"
+          type="text"
+          name="name"
+          placeholder="John Doe"
+          required
+          className="flex h-11 w-full rounded-xl border border-input bg-card/50 px-4 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary transition-all border-border/50 focus:border-primary/50"
+        />
+      </div>
+
+      <div className="space-y-3">
+        <div className="flex items-center gap-2 text-primary">
+          <div className="p-1.5 rounded-lg bg-primary/10 border border-primary/20">
             <Mail className="h-4 w-4" />
           </div>
-          <label
-            htmlFor="email"
-            className="text-sm font-semibold tracking-tight text-foreground"
-          >
+          <label htmlFor="email" className="text-sm font-semibold tracking-tight text-foreground">
             Email Address
           </label>
         </div>
@@ -126,10 +142,10 @@ export default function LoginForm() {
           id="email"
           type="email"
           name="email"
-          placeholder="batool@gmail.com"
+          placeholder="admin@gmail.com"
           required
           autoComplete="email"
-          className="flex h-11 w-full rounded-xl border border-input bg-card/50 px-4 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-all border-border/50 focus:border-primary/50"
+          className="flex h-11 w-full rounded-xl border border-input bg-card/50 px-4 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary transition-all border-border/50 focus:border-primary/50"
         />
       </div>
 
@@ -138,10 +154,7 @@ export default function LoginForm() {
           <div className="p-1.5 rounded-lg bg-primary/10 border border-primary/20">
             <Lock className="h-4 w-4" />
           </div>
-          <label
-            htmlFor="password"
-            className="text-sm font-semibold tracking-tight text-foreground"
-          >
+          <label htmlFor="password" className="text-sm font-semibold tracking-tight text-foreground">
             Password
           </label>
         </div>
@@ -149,10 +162,10 @@ export default function LoginForm() {
           id="password"
           type="password"
           name="password"
-          placeholder="password123"
+          placeholder="••••••••"
           required
-          autoComplete="current-password"
-          className="flex h-11 w-full rounded-xl border border-input bg-card/50 px-4 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-all border-border/50 focus:border-primary/50"
+          autoComplete="new-password"
+          className="flex h-11 w-full rounded-xl border border-input bg-card/50 px-4 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary transition-all border-border/50 focus:border-primary/50"
         />
       </div>
 
@@ -166,7 +179,7 @@ export default function LoginForm() {
           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
         ) : (
           <span className="flex items-center">
-            Sign In <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+            Initialize Access <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
           </span>
         )}
       </button>
@@ -177,28 +190,10 @@ export default function LoginForm() {
         </div>
       )}
 
-      <div className="mt-4 p-4 rounded-lg bg-secondary/50 border border-border text-xs text-muted-foreground">
-        <strong>Demo Credentials ({role}):</strong><br />
-        {role === 'Admin' ? (
-          <>
-            Email: admin@gmail.com<br />
-            Password: password123
-          </>
-        ) : (
-          <>
-            Email: <span className="opacity-60 font-medium">batool@gmail.com</span><br />
-            Password: <span className="opacity-60 font-medium">password123</span>
-          </>
-        )}
-      </div>
-
       <div className="mt-6 text-center">
-        <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest">
-          No operational access?{" "}
-          <Link href="/signup" className="text-primary italic hover:underline">
-            Request Initialization
-          </Link>
-        </p>
+        <Link href="/login" className="text-xs font-bold text-zinc-400 hover:text-primary transition-colors uppercase tracking-widest">
+          Already have access? <span className="text-primary italic">Sign In</span>
+        </Link>
       </div>
     </form>
   );
