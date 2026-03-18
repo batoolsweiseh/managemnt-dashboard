@@ -288,11 +288,11 @@ export async function updateTask(id: string, formData: FormData) {
     revalidatePath('/tasks');
     return { success: true };
   } catch (error: any) {
-    console.error("Failed to update task (Database/Logic):", error);
+    console.error("CRITICAL ERROR in updateTask:", error.message || error);
     if (error.code === 'SQLITE_CONSTRAINT') {
-      return { error: 'Task update failed: Database constraint error.' };
+      return { error: `Task update failed: Database constraint error (${error.message})` };
     }
-    return { error: 'Failed to update task. Please try again later.' };
+    return { error: `Failed to update task: ${error.message || 'Unknown error'}` };
   }
 }
 
