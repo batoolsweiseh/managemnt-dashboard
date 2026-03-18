@@ -187,7 +187,7 @@ export async function createTask(formData: FormData) {
       priority,
       dueDate,
       assignedUser,
-      assignedUserId: assignedUserId || undefined, // undefined will be handled by SQL as NULL if handled correctly or we can pass null
+      assignedUserId: assignedUserId || null, 
     });
 
     await addActivityLog({
@@ -204,11 +204,11 @@ export async function createTask(formData: FormData) {
     revalidatePath('/tasks');
     return { success: true };
   } catch (error: any) {
-    console.error("Failed to create task (Database/Logic):", error);
+    console.error("CRITICAL ERROR in createTask:", error.message || error);
     if (error.code === 'SQLITE_CONSTRAINT') {
-      return { error: 'Task creation failed: Data constraint violation.' };
+      return { error: `Task creation failed: Data constraint violation (${error.message})` };
     }
-    return { error: 'System error while creating task. Please check logs.' };
+    return { error: `System error while creating task: ${error.message || 'Unknown error'}` };
   }
 }
 
