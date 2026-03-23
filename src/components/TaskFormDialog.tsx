@@ -4,6 +4,7 @@ import { Task, TaskStatus, TaskPriority } from "@/lib/types";
 import { X, Calendar, User, Tag, AlignLeft, ShieldCheck, Sparkles } from "lucide-react";
 import { createTask, updateTask } from "@/lib/actions";
 import { useState, useTransition } from "react";
+import { toast } from "sonner";
 
 interface TaskFormDialogProps {
   task?: Task | null;
@@ -27,7 +28,9 @@ export default function TaskFormDialog({ task, users, onClose, userRole = 'Admin
       
       if (result.error) {
         setError(result.error);
+        toast.error(result.error);
       } else {
+        toast.success(task ? "Mission parameters updated." : "New objective deployed.");
         onClose();
       }
     });

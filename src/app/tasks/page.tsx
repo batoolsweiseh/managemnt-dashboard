@@ -30,17 +30,18 @@ export default async function TasksPage({ searchParams }: PageProps) {
 
   const params = await searchParams;
   const currentPage = Number(params.page) || 1;
-  const { tasks, total, totalPages } = await getTasks(
-    params.query, 
-    params.status, 
-    params.priority, 
-    params.dueDate,
-    currentPage,
-    10,
-    userRole === 'Admin' ? undefined : userId
-  );
-
-  const users = await getAllUsers();
+  const [{ tasks, total, totalPages }, users] = await Promise.all([
+    getTasks(
+      params.query, 
+      params.status, 
+      params.priority, 
+      params.dueDate,
+      currentPage,
+      10,
+      userRole === 'Admin' ? undefined : userId
+    ),
+    getAllUsers(),
+  ]);
 
   return (
     <div className="flex flex-col gap-10 max-w-7xl mx-auto py-8">

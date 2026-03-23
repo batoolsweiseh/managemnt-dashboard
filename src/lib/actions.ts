@@ -2,7 +2,7 @@
 
 import { signIn, signOut, auth } from "@/auth";
 import { AuthError } from "next-auth";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { 
   createTask as createDataTask, 
   updateTask as updateDataTask, 
@@ -10,8 +10,11 @@ import {
   getTask, 
   addActivityLog, 
   getActivityLogs,
+  createNotification,
+  getAdminIds,
   TaskStatus, 
-  TaskPriority 
+  TaskPriority,
+  Notification 
 } from "./data";
 import db from "./db";
 
@@ -46,6 +49,7 @@ export async function login(prevState: string | undefined, formData: FormData) {
         targetTitle: user.name,
         details: 'User logged into the system dashboard.'
       });
+      revalidatePath('/', 'page');
     }
 
     // Success - will be handled by the client-side router.push('/')
@@ -105,28 +109,30 @@ export async function signup(prevState: string | undefined, formData: FormData) 
     
     try {
       db.prepare('INSERT INTO users (id, name, email, password, role) VALUES (?, ?, ?, ?, ?)').run(id, name, email, password, role);
+      
+      await addActivityLog({
+        userId: id,
+        userName: name,
+        action: 'SIGNUP',
+        targetId: id,
+        targetTitle: name,
+        details: `Created a new ${role} account.`
+      });
+
+      revalidatePath('/', 'page');
+
+      const res = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      });
+
+      if (res?.error) {
+        return "Signup succeeded but login failed.";
+      }
     } catch (e) {
       console.error("Database error during user insertion:", e);
       return "Failed to save user in database.";
-    }
-
-    await addActivityLog({
-      userId: id,
-      userName: name,
-      action: 'SIGNUP',
-      targetId: id,
-      targetTitle: name,
-      details: `Created a new ${role} account.`
-    });
-
-    const res = await signIn("credentials", {
-      email,
-      password,
-      redirect: false,
-    });
-
-    if (res?.error) {
-      return "Signup succeeded but login failed.";
     }
   } catch (error) {
     if (error instanceof AuthError) return "Auth error during signup.";
@@ -200,8 +206,17 @@ export async function createTask(formData: FormData) {
       details: `Created task "${newTask.title}"`
     });
 
-    revalidatePath('/');
-    revalidatePath('/tasks');
+    if (newTask.assignedUserId) {
+      await createNotification({
+        userId: newTask.assignedUserId,
+        title: 'New Task Assigned',
+        message: `${session.user?.name || 'An admin'} assigned you a new task: ${newTask.title}`,
+        type: 'ASSIGNMENT'
+      });
+    }
+
+    revalidatePath('/', 'page');
+    revalidatePath('/tasks', 'page');
     return { success: true };
   } catch (error: any) {
     console.error("CRITICAL ERROR in createTask:", error.message || error);
@@ -284,8 +299,20 @@ export async function updateTask(id: string, formData: FormData) {
       details: `Updated task "${updatedTask.title}"`
     });
 
-    revalidatePath('/');
-    revalidatePath('/tasks');
+    // Notify if assignment changed
+    if (task.assignedUserId !== updatedTask.assignedUserId && updatedTask.assignedUserId) {
+      await createNotification({
+        userId: updatedTask.assignedUserId,
+        title: 'New Task Assigned',
+        message: `${session.user?.name || 'An admin'} assigned you a task: ${updatedTask.title}`,
+        type: 'ASSIGNMENT'
+      });
+    }
+
+    revalidatePath('/', 'page');
+    revalidatePath('/tasks', 'page');
+    
+    
     return { success: true };
   } catch (error: any) {
     console.error("CRITICAL ERROR in updateTask:", error.message || error);
@@ -330,8 +357,31 @@ export async function updateTaskStatus(id: string, status: TaskStatus) {
       details: `Changed status to ${status}`
     });
 
-    revalidatePath('/');
-    revalidatePath('/tasks');
+    if (userRole === 'Admin') {
+      if (updatedTask.assignedUserId) {
+        await createNotification({
+          userId: updatedTask.assignedUserId,
+          title: 'Task Status Updated',
+          message: `The status of mission "${updatedTask.title}" was updated to ${status} by ${session.user?.name || 'the operative'}`,
+          type: 'STATUS_UPDATE'
+        });
+      }
+    } else {
+      const admins = await getAdminIds();
+      for (const admin of admins) {
+        await createNotification({
+          userId: admin.id,
+          title: 'Operative Update',
+          message: `${session.user?.name || 'An operative'} updated the status of "${updatedTask.title}" to ${status}`,
+          type: 'STATUS_UPDATE'
+        });
+      }
+    }
+
+    revalidatePath('/', 'page');
+    revalidatePath('/tasks', 'page');
+    
+    
     return { success: true };
   } catch (error) {
     console.error("Failed to update task status (Database/Logic):", error);
@@ -378,11 +428,39 @@ export async function deleteTask(id: string) {
       details: `Deleted task "${task.title}"`
     });
 
-    revalidatePath('/');
-    revalidatePath('/tasks');
+    revalidatePath('/', 'page');
+    revalidatePath('/tasks', 'page');
+    
     return { success: true };
   } catch (error) {
     console.error("Failed to delete task (Logic/Log):", error);
     return { error: 'Failed to complete deletion process.' };
   }
+}
+
+export async function getUserNotifications() {
+  const session = await auth();
+  if (!session || !session.user) return [];
+  
+  const { getNotifications } = await import("./data");
+  return await getNotifications(session.user.id!);
+}
+
+export async function readNotification(id: string) {
+  const session = await auth();
+  if (!session || !session.user) return { error: 'Unauthorized' };
+  
+  const { markNotificationRead } = await import("./data");
+  const result = await markNotificationRead(id);
+  revalidatePath('/', 'page');
+  return result;
+}
+export async function clearAllNotifications() {
+  const session = await auth();
+  if (!session || !session.user) return { error: 'Unauthorized' };
+  
+  const { markAllRead } = await import("./data");
+  const result = await markAllRead(session.user.id!);
+  revalidatePath('/', 'page');
+  return result;
 }

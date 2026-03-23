@@ -13,7 +13,7 @@ try {
       email TEXT UNIQUE NOT NULL,
       password TEXT NOT NULL,
       role TEXT NOT NULL DEFAULT 'User',
-      createdAt TEXT NOT NULL DEFAULT (datetime('now'))
+      createdAt TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
     );
 
     CREATE TABLE IF NOT EXISTS tasks (
@@ -25,8 +25,8 @@ try {
       dueDate TEXT NOT NULL,
       assignedUserId TEXT,
       assignedUser TEXT,
-      createdAt TEXT NOT NULL DEFAULT (datetime('now')),
-      updatedAt TEXT NOT NULL DEFAULT (datetime('now')),
+      createdAt TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
+      updatedAt TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
       FOREIGN KEY (assignedUserId) REFERENCES users(id)
     );
 
@@ -39,10 +39,28 @@ try {
       targetTitle TEXT NOT NULL,
       taskId TEXT,
       details TEXT,
-      timestamp TEXT NOT NULL DEFAULT (datetime('now')),
+      timestamp TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
       FOREIGN KEY (userId) REFERENCES users(id),
       FOREIGN KEY (taskId) REFERENCES tasks(id) ON DELETE CASCADE
     );
+
+    CREATE TABLE IF NOT EXISTS notifications (
+      id TEXT PRIMARY KEY,
+      userId TEXT NOT NULL,
+      title TEXT NOT NULL,
+      message TEXT NOT NULL,
+      type TEXT NOT NULL,
+      read INTEGER NOT NULL DEFAULT 0,
+      createdAt TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
+      FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
+    );
+
+    -- Performance Indexes
+    CREATE INDEX IF NOT EXISTS idx_tasks_assignedUserId ON tasks (assignedUserId);
+    CREATE INDEX IF NOT EXISTS idx_tasks_status ON tasks (status);
+    CREATE INDEX IF NOT EXISTS idx_activity_logs_targetId ON activity_logs (targetId);
+    CREATE INDEX IF NOT EXISTS idx_activity_logs_userId ON activity_logs (userId);
+    CREATE INDEX IF NOT EXISTS idx_notifications_userId ON notifications (userId);
   `);
   console.log("Database initialized successfully.");
 } catch (error) {

@@ -2,9 +2,11 @@
 
 import { ActivityLog } from "@/lib/types";
 import { getTaskActivity } from "@/lib/actions";
-import { X, History, User, Clock, Terminal, ArrowRight } from "lucide-react";
+import { X, History, User, Clock, Terminal, ArrowRight, AlertTriangle } from "lucide-react";
 import { useState, useEffect } from "react";
 import { formatDistanceToNow } from "date-fns";
+
+import { useQuery } from "@tanstack/react-query";
 
 interface TaskHistoryDialogProps {
   taskId: string;
@@ -13,17 +15,11 @@ interface TaskHistoryDialogProps {
 }
 
 export default function TaskHistoryDialog({ taskId, taskTitle, onClose }: TaskHistoryDialogProps) {
-  const [logs, setLogs] = useState<ActivityLog[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function fetchLogs() {
-      const data = await getTaskActivity(taskId);
-      setLogs(data);
-      setLoading(false);
-    }
-    fetchLogs();
-  }, [taskId]);
+  const { data: logs = [], isLoading, isError } = useQuery<ActivityLog[]>({
+    queryKey: ['task-activity', taskId],
+    queryFn: () => getTaskActivity(taskId),
+    staleTime: 300000, // Reuse data for 5 minutes
+  });
 
   return (
     <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-zinc-950/40 backdrop-blur-md animate-in fade-in duration-300">
@@ -47,12 +43,21 @@ export default function TaskHistoryDialog({ taskId, taskTitle, onClose }: TaskHi
           </button>
         </div>
 
-        {/* Content Section */}
         <div className="p-8 max-h-[60vh] overflow-y-auto custom-scrollbar">
-          {loading ? (
+          {isLoading ? (
             <div className="flex flex-col items-center justify-center py-20 space-y-4">
               <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
               <span className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Accessing Registry...</span>
+            </div>
+          ) : isError ? (
+            <div className="flex flex-col items-center justify-center py-20 text-center space-y-4 text-rose-500">
+              <div className="w-16 h-16 bg-rose-50 rounded-2xl flex items-center justify-center border border-rose-100">
+                <AlertTriangle className="w-8 h-8 opacity-50" />
+              </div>
+              <div>
+                <p className="font-black uppercase tracking-widest text-xs">Registry Connection Lost</p>
+                <p className="text-[10px] font-bold opacity-70 mt-1 uppercase tracking-tighter text-rose-400">Error retrieving mission parameters</p>
+              </div>
             </div>
           ) : logs.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
@@ -87,7 +92,9 @@ export default function TaskHistoryDialog({ taskId, taskTitle, onClose }: TaskHi
                         {log.action}
                       </span>
                       <span className="text-[10px] font-bold text-zinc-400">
-                        {formatDistanceToNow(new Date(log.timestamp), { addSuffix: true })}
+                        {Math.abs(Date.now() - new Date(log.timestamp).getTime()) < 60000 
+                          ? 'Just Now' 
+                          : formatDistanceToNow(new Date(log.timestamp), { addSuffix: true })}
                       </span>
                     </div>
                     <div className="bg-zinc-50 rounded-2xl p-4 border border-zinc-100 group-hover:border-primary/20 transition-colors">

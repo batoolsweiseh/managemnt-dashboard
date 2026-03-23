@@ -43,12 +43,12 @@ export default function DashboardStats({ stats, role = 'User' }: StatsProps) {
       description: "Active execution"
     },
     {
-      label: "Overdue",
-      value: stats.overdue,
-      icon: Clock,
-      color: "bg-rose-50/50 text-rose-600",
-      trend: "Critical",
-      description: "Expiring deadlines"
+      label: "Pending",
+      value: stats.pending,
+      icon: CircleDashed,
+      color: "bg-indigo-50/50 text-indigo-600",
+      trend: "Queued",
+      description: "Awaiting execution"
     }
   ];
 

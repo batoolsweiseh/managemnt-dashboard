@@ -102,10 +102,12 @@ export default async function DashboardPage() {
   const userId = session.user.id;
   const userRole = (session.user as any).role;
 
-  const stats = await getDashboardStats(userId, userRole);
-  const recentTasks = await getRecentTasks(userId, userRole);
-  const recentActivity = await getRecentActivity(6, userId, userRole);
-  const users = await getAllUsers();
+  const [stats, recentTasks, recentActivity, users] = await Promise.all([
+    getDashboardStats(userId, userRole),
+    getRecentTasks(userId, userRole),
+    getRecentActivity(6, userId, userRole),
+    getAllUsers(),
+  ]);
 
   const chartData = {
     statusData: [

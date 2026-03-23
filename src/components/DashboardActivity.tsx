@@ -48,7 +48,9 @@ export default function DashboardActivity({ logs }: { logs: ActivityLog[] }) {
                       {log.action.replace('_', ' ')}
                     </span>
                     <span className="text-[10px] font-bold text-zinc-400 whitespace-nowrap">
-                      {formatDistanceToNow(new Date(log.timestamp), { addSuffix: true })}
+                      {Math.abs(Date.now() - new Date(log.timestamp).getTime()) < 60000 
+                        ? 'Just Now' 
+                        : formatDistanceToNow(new Date(log.timestamp), { addSuffix: true })}
                     </span>
                   </div>
                   <p className="text-sm font-bold text-zinc-900 truncate">

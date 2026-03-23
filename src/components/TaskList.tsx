@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { deleteTask, updateTaskStatus } from "@/lib/actions";
 import { useState } from "react";
+import { toast } from "sonner";
 import TaskFormDialog from "./TaskFormDialog";
 import TaskHistoryDialog from "./TaskHistoryDialog";
 
@@ -30,6 +31,39 @@ interface TaskListProps {
 export default function TaskList({ tasks, userRole, users, currentUserId }: TaskListProps) {
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [historyTask, setHistoryTask] = useState<Task | null>(null);
+
+  const [isUpdating, setIsUpdating] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
+
+  const handleStatusUpdate = async (id: string, status: any) => {
+    setIsUpdating(id);
+    try {
+      const result = await updateTaskStatus(id, status);
+      if (result.error) {
+        toast.error(result.error);
+      } else {
+        toast.success(`Mission phase updated to ${status}.`);
+      }
+    } finally {
+      setIsUpdating(null);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (confirm("Are you sure you want to terminate this mission?")) {
+      setIsDeleting(id);
+      try {
+        const result = await deleteTask(id);
+        if (result.error) {
+          toast.error(result.error);
+        } else {
+          toast.success("Mission terminated successfully.");
+        }
+      } finally {
+        setIsDeleting(null);
+      }
+    }
+  };
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
@@ -76,10 +110,10 @@ export default function TaskList({ tasks, userRole, users, currentUserId }: Task
                 <div className="relative">
                   <select 
                     value={task.status}
-                    onChange={(e) => updateTaskStatus(task.id, e.target.value as any)}
-                    disabled={userRole !== 'Admin' && task.assignedUserId !== currentUserId}
+                    onChange={(e) => handleStatusUpdate(task.id, e.target.value as any)}
+                    disabled={isUpdating === task.id || (userRole !== 'Admin' && task.assignedUserId !== currentUserId)}
                     className={`absolute inset-0 w-full h-full opacity-0 z-10 ${
-                      (userRole === 'Admin' || task.assignedUserId === currentUserId) ? 'cursor-pointer' : 'cursor-not-allowed'
+                      (isUpdating === task.id || (userRole !== 'Admin' && task.assignedUserId !== currentUserId)) ? 'cursor-not-allowed' : 'cursor-pointer'
                     }`}
                   >
                     <option value="Pending">Pending</option>
@@ -88,8 +122,8 @@ export default function TaskList({ tasks, userRole, users, currentUserId }: Task
                   </select>
                   <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300 ${
                     task.status === 'Completed' ? 'bg-emerald-50 shadow-emerald-100' : 'bg-zinc-50 shadow-zinc-100'
-                  } shadow-lg border border-white`}>
-                    {getStatusIcon(task.status)}
+                  } shadow-lg border border-white ${isUpdating === task.id ? 'animate-pulse opacity-50' : ''}`}>
+                    {isUpdating === task.id ? <Clock className="w-4 h-4 text-zinc-400 animate-spin" /> : getStatusIcon(task.status)}
                   </div>
                 </div>
                 
@@ -99,7 +133,9 @@ export default function TaskList({ tasks, userRole, users, currentUserId }: Task
                   </span>
                   <div className="flex flex-col">
                     <span className="text-xs font-bold text-zinc-400 uppercase tracking-tighter">Mission Phase</span>
-                    <span className="text-sm font-black text-zinc-900">{task.status}</span>
+                    <span className="text-sm font-black text-zinc-900">
+                      {isUpdating === task.id ? 'Syncing...' : task.status}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -152,10 +188,13 @@ export default function TaskList({ tasks, userRole, users, currentUserId }: Task
                 {/* Delete button: Admin ONLY */}
                 {userRole === 'Admin' && (
                   <button 
-                    onClick={() => deleteTask(task.id)}
-                    className="w-10 h-10 rounded-xl bg-rose-50 text-rose-400 hover:bg-rose-600 hover:text-white transition-all duration-300 flex items-center justify-center group/btn shadow-sm"
+                    onClick={() => handleDelete(task.id)}
+                    disabled={isDeleting === task.id}
+                    className={`w-10 h-10 rounded-xl bg-rose-50 text-rose-400 hover:bg-rose-600 hover:text-white transition-all duration-300 flex items-center justify-center group/btn shadow-sm ${
+                      isDeleting === task.id ? 'opacity-50 cursor-not-allowed animate-pulse' : ''
+                    }`}
                   >
-                    <Trash2 className="w-4 h-4 group-hover/btn:scale-110 transition-transform" />
+                    {isDeleting === task.id ? <Clock className="w-4 h-4 animate-spin text-rose-400" /> : <Trash2 className="w-4 h-4 group-hover/btn:scale-110 transition-transform" />}
                   </button>
                 )}
                 {userRole === 'User' && task.assignedUserId !== currentUserId && (

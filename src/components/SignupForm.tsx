@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { signup } from "@/lib/actions";
 import { Loader2, ArrowRight, Mail, Lock, User, ShieldCheck, UserCircle } from "lucide-react";
 import Link from "next/link";
+import { toast } from "sonner";
 
 export default function SignupForm() {
   const router = useRouter();
@@ -23,8 +24,15 @@ export default function SignupForm() {
   }, [role]);
 
   useEffect(() => {
+    if (errorMessage) {
+      toast.error(errorMessage);
+    }
+  }, [errorMessage]);
+
+  useEffect(() => {
     if (submitted && !isPending && !errorMessage) {
-      router.push('/');
+      toast.success("Account initialized successfully. Welcome to the node!");
+      window.location.href = '/';
     }
   }, [submitted, isPending, errorMessage, router]);
 

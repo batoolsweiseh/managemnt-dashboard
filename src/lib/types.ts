@@ -30,3 +30,15 @@ export interface ActivityLog {
   timestamp: string;
   details: string;
 }
+
+export type NotificationType = 'ASSIGNMENT' | 'STATUS_UPDATE';
+
+export interface Notification {
+  id: string;
+  userId: string;
+  title: string;
+  message: string;
+  type: NotificationType;
+  read: number; // 0 or 1
+  createdAt: string;
+}

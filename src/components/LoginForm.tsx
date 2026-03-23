@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { login } from "@/lib/actions";
 import { Loader2, ArrowRight, Mail, Lock, ShieldCheck, UserCircle } from "lucide-react";
 import Link from "next/link";
+import { toast } from "sonner";
 
 export default function LoginForm() {
   const router = useRouter();
@@ -16,8 +17,15 @@ export default function LoginForm() {
   );
 
   useEffect(() => {
+    if (errorMessage) {
+      toast.error(errorMessage);
+    }
+  }, [errorMessage]);
+
+  useEffect(() => {
     if (submitted && !isPending && !errorMessage) {
-      router.push('/');
+      toast.success("Security clearance verified. Accessing node...");
+      window.location.href = '/';
     }
   }, [submitted, isPending, errorMessage, router]);
 
