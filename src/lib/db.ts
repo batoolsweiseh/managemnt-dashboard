@@ -1,9 +1,10 @@
 import Database from 'better-sqlite3';
 import path from 'path';
+const dbPath = process.env.VERCEL 
+  ? path.resolve('/tmp', 'database.sqlite')
+  : path.resolve(process.cwd(), 'database.sqlite');
 
-const dbPath = path.resolve(process.cwd(), 'database.sqlite');
 const db = new Database(dbPath);
-
 try {
   // Initialize tables
   db.exec(`
