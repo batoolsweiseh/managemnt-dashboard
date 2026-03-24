@@ -1,7 +1,7 @@
 import NextAuth from "next-auth";
 import { authConfig } from "./auth.config";
 import Credentials from "next-auth/providers/credentials";
-import db from "./lib/db";
+import { getUserByEmail } from "./lib/data";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   ...authConfig,
@@ -11,15 +11,17 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         if (!credentials?.email || !credentials?.password) return null;
 
         try {
-          const user = db.prepare('SELECT * FROM users WHERE email = ? AND password = ?')
-            .get(credentials.email, credentials.password) as any;
+          const user = await getUserByEmail(
+            credentials.email as string,
+            credentials.password as string
+          );
 
           if (user) {
-            return { 
-              id: user.id, 
-              name: user.name, 
+            return {
+              id: user.id,
+              name: user.name,
               email: user.email,
-              role: user.role 
+              role: user.role
             };
           }
         } catch (error) {

@@ -2,21 +2,24 @@
 
 import { signIn, signOut, auth } from "@/auth";
 import { AuthError } from "next-auth";
-import { revalidatePath, revalidateTag } from "next/cache";
-import { 
-  createTask as createDataTask, 
-  updateTask as updateDataTask, 
-  deleteTask as deleteDataTask, 
-  getTask, 
-  addActivityLog, 
+import { revalidatePath } from "next/cache";
+import {
+  createTask as createDataTask,
+  updateTask as updateDataTask,
+  deleteTask as deleteDataTask,
+  getTask,
+  addActivityLog,
   getActivityLogs,
   createNotification,
   getAdminIds,
-  TaskStatus, 
+  createUser,
+  findUserByEmail,
+  findUserByName,
+  getUserByEmail,
+  TaskStatus,
   TaskPriority,
-  Notification 
+  Notification
 } from "./data";
-import db from "./db";
 
 export async function getTaskActivity(taskId: string) {
   return await getActivityLogs(taskId);
@@ -32,14 +35,12 @@ export async function login(prevState: string | undefined, formData: FormData) {
     });
 
     if (res?.error) {
-      if (res.error === "CredentialsSignin") {
-        return "Invalid credentials.";
-      }
+      if (res.error === "CredentialsSignin") return "Invalid credentials.";
       return "Unable to sign in.";
     }
 
     // Add activity log for successful login
-    const user = db.prepare('SELECT id, name FROM users WHERE email = ?').get(form.email) as { id: string, name: string } | undefined;
+    const user = await getUserByEmail(form.email, form.password);
     if (user) {
       await addActivityLog({
         userId: user.id,
@@ -52,15 +53,12 @@ export async function login(prevState: string | undefined, formData: FormData) {
       revalidatePath('/', 'page');
     }
 
-    // Success - will be handled by the client-side router.push('/')
     return undefined;
   } catch (error) {
     if (error instanceof AuthError) {
       switch (error.type) {
-        case "CredentialsSignin":
-          return "Invalid credentials.";
-        default:
-          return "Something went wrong.";
+        case "CredentialsSignin": return "Invalid credentials.";
+        default: return "Something went wrong.";
       }
     }
     console.error("Unexpected login error:", error);
@@ -73,10 +71,8 @@ export async function logout() {
 }
 
 export async function signup(prevState: string | undefined, formData: FormData) {
-  // Input Validation & Logging (User Advice)
   const rawForm = Object.fromEntries(formData.entries());
   console.log("INPUT (Signup):", JSON.stringify(rawForm));
-  console.log("TYPE:", typeof rawForm);
 
   if (!formData || formData.entries().next().done) {
     return "Required fields are missing.";
@@ -88,52 +84,28 @@ export async function signup(prevState: string | undefined, formData: FormData) 
     const password = formData.get('password') as string;
     const role = formData.get('role') as 'Admin' | 'User';
 
-    if (!name || !email || !password || !role) {
-      return "All fields are required.";
-    }
+    if (!name || !email || !password || !role) return "All fields are required.";
 
-    // DB Query: Check User
-    let existingUser;
-    try {
-      existingUser = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
-    } catch (e) {
-      console.error("Database error during signup check:", e);
-      return "Internal database error. Please try again.";
-    }
-
-    if (existingUser) {
-      return "User already exists.";
-    }
+    const existingUser = await findUserByEmail(email);
+    if (existingUser) return "User already exists.";
 
     const id = Math.random().toString(36).substring(2, 9);
-    
-    try {
-      db.prepare('INSERT INTO users (id, name, email, password, role) VALUES (?, ?, ?, ?, ?)').run(id, name, email, password, role);
-      
-      await addActivityLog({
-        userId: id,
-        userName: name,
-        action: 'SIGNUP',
-        targetId: id,
-        targetTitle: name,
-        details: `Created a new ${role} account.`
-      });
+    await createUser(id, name, email, password, role);
 
-      revalidatePath('/', 'page');
+    await addActivityLog({
+      userId: id,
+      userName: name,
+      action: 'SIGNUP',
+      targetId: id,
+      targetTitle: name,
+      details: `Created a new ${role} account.`
+    });
 
-      const res = await signIn("credentials", {
-        email,
-        password,
-        redirect: false,
-      });
+    revalidatePath('/', 'page');
 
-      if (res?.error) {
-        return "Signup succeeded but login failed.";
-      }
-    } catch (e) {
-      console.error("Database error during user insertion:", e);
-      return "Failed to save user in database.";
-    }
+    const res = await signIn("credentials", { email, password, redirect: false });
+    if (res?.error) return "Signup succeeded but login failed.";
+
   } catch (error) {
     if (error instanceof AuthError) return "Auth error during signup.";
     console.error("Signup error:", error);
@@ -142,19 +114,13 @@ export async function signup(prevState: string | undefined, formData: FormData) 
 }
 
 export async function createTask(formData: FormData) {
-  // Input Validation & Logging (User Advice)
   const rawForm = Object.fromEntries(formData.entries());
   console.log("INPUT (CreateTask):", JSON.stringify(rawForm));
-  console.log("TYPE:", typeof rawForm);
 
-  if (!formData || formData.entries().next().done) {
-    return { error: 'Input is empty' };
-  }
+  if (!formData || formData.entries().next().done) return { error: 'Input is empty' };
 
   const session = await auth();
-  if (!session || !session.user) {
-    return { error: 'Unauthorized.' };
-  }
+  if (!session || !session.user) return { error: 'Unauthorized.' };
 
   const userRole = (session.user as any)?.role;
 
@@ -165,36 +131,21 @@ export async function createTask(formData: FormData) {
     const priority = formData.get('priority') as TaskPriority;
     const dueDate = formData.get('dueDate') as string;
 
-    if (userRole !== 'Admin') {
-      return { error: 'Forbidden: Only admins can create tasks.' };
-    }
+    if (userRole !== 'Admin') return { error: 'Forbidden: Only admins can create tasks.' };
 
     const assignedUser = formData.get('assignedUser') as string;
     let assignedUserId = formData.get('assignedUserId') as string | null;
 
-    // If assignedUserId is empty or null, try to find the user by their name
     if (!assignedUserId || assignedUserId === '') {
-      try {
-        const user = db.prepare('SELECT id FROM users WHERE name = ?').get(assignedUser) as { id: string } | undefined;
-        assignedUserId = user?.id || null;
-      } catch (e) {
-        console.error("Database error looking up user:", e);
-      }
+      const user = await findUserByName(assignedUser);
+      assignedUserId = user?.id || null;
     }
 
     if (!title || !description || !status || !priority || !dueDate || !assignedUser) {
       return { error: 'All fields are required.' };
     }
 
-    const newTask = await createDataTask({
-      title,
-      description,
-      status,
-      priority,
-      dueDate,
-      assignedUser,
-      assignedUserId: assignedUserId || null, 
-    });
+    const newTask = await createDataTask({ title, description, status, priority, dueDate, assignedUser, assignedUserId: assignedUserId || null });
 
     await addActivityLog({
       userId: session.user?.id || 'unknown',
@@ -220,22 +171,15 @@ export async function createTask(formData: FormData) {
     return { success: true };
   } catch (error: any) {
     console.error("CRITICAL ERROR in createTask:", error.message || error);
-    if (error.code === 'SQLITE_CONSTRAINT') {
-      return { error: `Task creation failed: Data constraint violation (${error.message})` };
-    }
     return { error: `System error while creating task: ${error.message || 'Unknown error'}` };
   }
 }
 
 export async function updateTask(id: string, formData: FormData) {
-  // Input Validation & Logging (User Advice)
   const rawForm = Object.fromEntries(formData.entries());
   console.log("INPUT (UpdateTask):", JSON.stringify(rawForm));
-  console.log("TYPE:", typeof rawForm);
 
-  if (!id) {
-    return { error: 'Task ID is required' };
-  }
+  if (!id) return { error: 'Task ID is required' };
 
   const session = await auth();
   if (!session || !session.user) return { error: 'Unauthorized' };
@@ -244,11 +188,7 @@ export async function updateTask(id: string, formData: FormData) {
   const userId = session.user.id;
 
   try {
-    const task = await getTask(id).catch(e => {
-      console.error("Database error fetching task:", e);
-      throw new Error("Failed to retrieve task from database.");
-    });
-    
+    const task = await getTask(id).catch(e => { throw new Error("Failed to retrieve task."); });
     if (!task) return { error: 'Task not found.' };
 
     if (userRole !== 'Admin' && task.assignedUserId !== userId) {
@@ -263,14 +203,9 @@ export async function updateTask(id: string, formData: FormData) {
     const assignedUser = formData.get('assignedUser') as string;
     let assignedUserId = formData.get('assignedUserId') as string | null;
 
-    // Mapping for Admin if they typed a name
     if (userRole === 'Admin' && (!assignedUserId || assignedUserId === '')) {
-      try {
-        const user = db.prepare('SELECT id FROM users WHERE name = ?').get(assignedUser) as { id: string } | undefined;
-        assignedUserId = user?.id || null;
-      } catch (e) {
-        console.error("Database error mapping user:", e);
-      }
+      const user = await findUserByName(assignedUser);
+      assignedUserId = user?.id || null;
     }
 
     const updateData: any = {};
@@ -299,7 +234,6 @@ export async function updateTask(id: string, formData: FormData) {
       details: `Updated task "${updatedTask.title}"`
     });
 
-    // Notify if assignment changed
     if (task.assignedUserId !== updatedTask.assignedUserId && updatedTask.assignedUserId) {
       await createNotification({
         userId: updatedTask.assignedUserId,
@@ -311,25 +245,17 @@ export async function updateTask(id: string, formData: FormData) {
 
     revalidatePath('/', 'page');
     revalidatePath('/tasks', 'page');
-    
-    
     return { success: true };
   } catch (error: any) {
     console.error("CRITICAL ERROR in updateTask:", error.message || error);
-    if (error.code === 'SQLITE_CONSTRAINT') {
-      return { error: `Task update failed: Database constraint error (${error.message})` };
-    }
     return { error: `Failed to update task: ${error.message || 'Unknown error'}` };
   }
 }
 
 export async function updateTaskStatus(id: string, status: TaskStatus) {
   console.log("INPUT (UpdateStatus):", JSON.stringify({ id, status }));
-  console.log("TYPE:", typeof status);
 
-  if (!id || !status) {
-    return { error: 'Missing task ID or status' };
-  }
+  if (!id || !status) return { error: 'Missing task ID or status' };
 
   const session = await auth();
   if (!session || !session.user) return { error: 'Unauthorized' };
@@ -380,25 +306,20 @@ export async function updateTaskStatus(id: string, status: TaskStatus) {
 
     revalidatePath('/', 'page');
     revalidatePath('/tasks', 'page');
-    
-    
     return { success: true };
   } catch (error) {
-    console.error("Failed to update task status (Database/Logic):", error);
+    console.error("Failed to update task status:", error);
     return { error: 'Failed to update status. Please try again.' };
   }
 }
 
 export async function deleteTask(id: string) {
   console.log("INPUT (DeleteTask):", id);
-  console.log("TYPE:", typeof id);
 
   if (!id) return { error: 'Task ID is required' };
 
   const session = await auth();
-  if (!session || !session.user) {
-    return { error: 'Unauthorized.' };
-  }
+  if (!session || !session.user) return { error: 'Unauthorized.' };
 
   const userRole = (session.user as any)?.role;
 
@@ -406,17 +327,9 @@ export async function deleteTask(id: string) {
     const task = await getTask(id);
     if (!task) return { error: 'Task already deleted or not found.' };
 
-    // Only Admin can delete tasks
-    if (userRole !== 'Admin') {
-      return { error: 'Forbidden: Users cannot delete tasks.' };
-    }
-    
-    try {
-      await deleteDataTask(id);
-    } catch (e) {
-      console.error("Database error during task deletion:", e);
-      return { error: 'Database failed to delete the task.' };
-    }
+    if (userRole !== 'Admin') return { error: 'Forbidden: Users cannot delete tasks.' };
+
+    await deleteDataTask(id);
 
     await addActivityLog({
       userId: session.user?.id || 'unknown',
@@ -430,10 +343,9 @@ export async function deleteTask(id: string) {
 
     revalidatePath('/', 'page');
     revalidatePath('/tasks', 'page');
-    
     return { success: true };
   } catch (error) {
-    console.error("Failed to delete task (Logic/Log):", error);
+    console.error("Failed to delete task:", error);
     return { error: 'Failed to complete deletion process.' };
   }
 }
@@ -441,7 +353,6 @@ export async function deleteTask(id: string) {
 export async function getUserNotifications() {
   const session = await auth();
   if (!session || !session.user) return [];
-  
   const { getNotifications } = await import("./data");
   return await getNotifications(session.user.id!);
 }
@@ -449,16 +360,15 @@ export async function getUserNotifications() {
 export async function readNotification(id: string) {
   const session = await auth();
   if (!session || !session.user) return { error: 'Unauthorized' };
-  
   const { markNotificationRead } = await import("./data");
   const result = await markNotificationRead(id);
   revalidatePath('/', 'page');
   return result;
 }
+
 export async function clearAllNotifications() {
   const session = await auth();
   if (!session || !session.user) return { error: 'Unauthorized' };
-  
   const { markAllRead } = await import("./data");
   const result = await markAllRead(session.user.id!);
   revalidatePath('/', 'page');
