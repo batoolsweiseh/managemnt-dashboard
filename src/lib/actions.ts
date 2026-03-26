@@ -299,14 +299,26 @@ export async function updateTask(id: string, formData: FormData) {
       details: `Updated task "${updatedTask.title}"`
     });
 
-    // Notify if assignment changed
-    if (task.assignedUserId !== updatedTask.assignedUserId && updatedTask.assignedUserId) {
-      await createNotification({
-        userId: updatedTask.assignedUserId,
-        title: 'New Task Assigned',
-        message: `${session.user?.name || 'An admin'} assigned you a task: ${updatedTask.title}`,
-        type: 'ASSIGNMENT'
-      });
+    // Notify assigned user of any relevant change if the action was by an Admin
+    if (userRole === 'Admin' && updatedTask.assignedUserId) {
+      const fieldChanged = (task.assignedUserId !== updatedTask.assignedUserId) ||
+                          (task.status !== updatedTask.status) ||
+                          (task.priority !== updatedTask.priority) ||
+                          (task.dueDate !== updatedTask.dueDate) ||
+                          (task.title !== updatedTask.title) ||
+                          (task.description !== updatedTask.description);
+
+      if (fieldChanged) {
+        const isNewAssignment = task.assignedUserId !== updatedTask.assignedUserId;
+        await createNotification({
+          userId: updatedTask.assignedUserId,
+          title: isNewAssignment ? 'New Task Assigned' : 'Task Parameters Updated',
+          message: isNewAssignment 
+            ? `${session.user?.name || 'An admin'} assigned you a new task: ${updatedTask.title}`
+            : `The mission "${updatedTask.title}" has been updated by the command hub. Check for parameter changes (status, priority, or deadline).`,
+          type: isNewAssignment ? 'ASSIGNMENT' : 'STATUS_UPDATE'
+        });
+      }
     }
 
     revalidatePath('/', 'page');
