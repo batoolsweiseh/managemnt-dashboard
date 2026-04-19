@@ -3,7 +3,6 @@
 import { useEffect } from "react";
 import { AlertTriangle, RotateCcw, Home } from "lucide-react";
 import Link from "next/link";
-import { Button } from "@/components/ui/button"; // Note: Checking if Button exists elsewhere, currently using class names
 
 export default function Error({
   error,

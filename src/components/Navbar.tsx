@@ -7,7 +7,6 @@ import type { Session } from "next-auth";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
-import NotificationBell from "./NotificationBell";
 
 export default function Navbar({ session }: { session: Session | null }) {
   const pathname = usePathname();
@@ -94,8 +93,7 @@ export default function Navbar({ session }: { session: Session | null }) {
         </div>
 
         {/* User Profile Section */}
-        <div className="ml-auto flex items-center gap-4 relative" ref={dropdownRef}>
-          <NotificationBell />
+        <div className="ml-auto relative" ref={dropdownRef}>
           <button
             onClick={() => setIsOpen(!isOpen)}
             className={`flex items-center gap-3 p-1.5 pr-4 rounded-2xl transition-all duration-300 border ${
@@ -118,7 +116,7 @@ export default function Navbar({ session }: { session: Session | null }) {
 
           {/* Premium Dropdown Menu */}
           {isOpen && (
-            <div className="absolute right-0 top-full mt-3 w-72 bg-white rounded-[2rem] border border-zinc-100 shadow-[0_20px_50px_rgba(0,0,0,0.15)] overflow-hidden animate-in fade-in zoom-in-95 slide-in-from-top-4 duration-300 origin-top-right">
+            <div className="absolute right-0 mt-3 w-72 bg-white rounded-[2rem] border border-zinc-100 shadow-[0_20px_50px_rgba(0,0,0,0.15)] overflow-hidden animate-in fade-in zoom-in-95 slide-in-from-top-4 duration-300 origin-top-right">
               {/* Profile Header */}
               <div className="p-6 bg-zinc-50/50 border-b border-zinc-100">
                 <div className="flex items-center gap-4">
